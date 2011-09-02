@@ -2,11 +2,13 @@ Signup
 	email => db
 	
 Plans and Prices
-	pages per month
+	monthly recurring
+	one time
 
 Webcam
 	Watch now
 	Upload
+		Drop and Drag / FileAPI
 
 App
 	Download on the app store
