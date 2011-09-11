@@ -1,7 +1,0 @@
-#!/bin/sh
-height=`identify $1 | cut -d ' ' -f 3 | cut -d x -f 2`
-convert $1 -colorspace Gray -depth 3 -sample 50% -sample 200% png:- | \
-  composite -tile mask.png - -compose Linear_Dodge png:- | \
-  composite -tile paper.jpg - -compose Add png:- | \
-  convert - \( -size 55x$height tile:tractor.png \) -swap 0,1 +append pinified_$1
-open pinified_$1
