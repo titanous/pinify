@@ -1,6 +1,14 @@
 require 'bundler/setup'
 require 'goliath'
 
+TEMPLATE = <<EOS
+<title>Pinify</title>
+<form method="POST" enctype="multipart/form-data" action="/">
+  <input name="image" type="file" /><br />
+  <input type="submit" />
+</form>
+EOS
+
 class PopenHandler < EM::Connection
   include EM::Deferrable
 
@@ -29,17 +37,10 @@ class Pinify < Goliath::API
 
   def response(env)
     return [404, {}, ''] if env['PATH_INFO'] == '/favicon.ico'
-    return [200, { 'Content-Type' => 'text/html' }, DATA] unless image = env['params']['image']
+    return [200, { 'Content-Type' => 'text/html' }, TEMPLATE] unless image = env['params']['image']
 
     result = EM::Synchrony.popen("filter/pinify #{image[:tempfile].path}")
 
     [200, { 'Content-Type' => 'image/jpg' }, result]
   end
 end
-
-__END__
-<title>Pinify</title>
-<form method="POST" enctype="multipart/form-data" action="/">
-  <input name="image" type="file" /><br />
-  <input type="submit" />
-</form>
