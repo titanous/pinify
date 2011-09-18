@@ -17,6 +17,8 @@ configure :development do |c|
 end
 
 configure do
+  use Rack::CommonLogger
+
   S3 = UberS3.new(
     :access_key         => ENV['AWS_ACCESS_KEY'],
     :secret_access_key  => ENV['AWS_SECRET_ACCESS_KEY'],
