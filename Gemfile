@@ -1,7 +1,8 @@
 source :rubygems
 
-gem 'goliath'
+gem 'sinatra-synchrony'
 gem 'uber-s3'
 gem 'redis'
 gem 'hiredis'
-gem 'em-http-request'
+gem 'thin'
+gem 'sinatra-reloader', :group => :development

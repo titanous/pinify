@@ -1,1 +1,1 @@
-web: ruby server.rb -sv -p $PORT
+web: rackup -E production -s thin -p $PORT
