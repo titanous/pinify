@@ -77,7 +77,7 @@ class Pinify < Goliath::API
 
     result = EM::Synchrony.popen("filter/pinify #{image[:tempfile].path}")
     id = R.incr('last-id').to_s(36)
-    S3.store "#{id}.jpg", result
+    S3.store "#{id}.jpg", result, :content_type => 'image/jpeg'
     [302, { 'Location' => "/#{id}" }, '']
   end
 
