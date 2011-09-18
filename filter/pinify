@@ -1,6 +1,7 @@
 #!/bin/sh
-height=`identify $1 | cut -d ' ' -f 3 | cut -d x -f 2`
-convert $1 -colorspace Gray -depth 3 -sample 50% -sample 200% png:- | \
+convert $1 -resize '1024x768>' $1_resized
+height=`identify $1_resized | cut -d ' ' -f 3 | cut -d x -f 2`
+convert $1_resized -colorspace Gray -depth 3 -sample 50% -sample 200% png:- | \
   composite -tile filter/mask.png - -compose Linear_Dodge png:- | \
   composite -tile filter/paper.jpg - -compose Add png:- | \
   convert - \( -size 55x$height tile:filter/tractor.png \) -swap 0,1 +append jpg:-
