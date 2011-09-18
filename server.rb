@@ -29,6 +29,8 @@ SHOW_TEMPLATE = <<EOS
 <img src="http://#{S3_BUCKET}/%{id}.jpg" />
 EOS
 
+HTML_CONTENT = { 'Content-Type' => 'text/html' }
+
 class PopenHandler < EM::Connection
   include EM::Deferrable
 
@@ -70,7 +72,9 @@ class Pinify < Goliath::API
 
   def process(image)
     return fourohfour unless image
+    return stupid_user unless image[:type] =~ %r{^image/}
     return so_big if image[:tempfile].size > 4_194_304
+
     result = EM::Synchrony.popen("filter/pinify #{image[:tempfile].path}")
     id = R.incr('last-id').to_s(36)
     S3.store "#{id}.jpg", result
@@ -83,14 +87,18 @@ class Pinify < Goliath::API
   end
 
   def render(content)
-    [200, { 'Content-Type' => 'text/html' }, content]
+    [200, HTML_CONTENT, content]
   end
 
   def fourohfour
-    [404, { 'Content-Type' => 'text/html' }, '<h1>404 Not Found</h1>']
+    [404, HTML_CONTENT, '<h1>404 Not Found</h1>']
   end
 
   def so_big
-    [413, { 'Content-Type' => 'text/html' }, "<h1>413 ePenis Too Large</h1>"]
+    [413, HTML_CONTENT, "<h1>413 ePenis Too Large</h1>"]
+  end
+
+  def stupid_user
+    [415, HTML_CONTENT, "<h1>415 Unsupported Media Type</h1>"]
   end
 end
