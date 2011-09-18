@@ -1,5 +1,21 @@
 require 'bundler/setup'
 require 'goliath'
+require 'uber-s3'
+require 'redis'
+require 'redis/connection/synchrony'
+
+S3_BUCKET = ENV['S3_BUCKET'] || 'z.pinify.me'
+
+S3 = UberS3.new(
+  :access_key         => ENV['AWS_ACCESS_KEY'],
+  :secret_access_key  => ENV['AWS_SECRET_ACCESS_KEY'],
+  :bucket             => S3_BUCKET,
+  :persistent         => true,
+  :adapter            => :em_http_fibered
+)
+
+REDIS_URI = URI.parse(ENV['REDISTOGO_URL'] || 'redis://localhost:6379')
+R = Redis.new(:host => REDIS_URI.host, :port => REDIS_URI.port, :password => REDIS_URI.password)
 
 UPLOAD_TEMPLATE = <<EOS
 <title>Pinify</title>
@@ -7,6 +23,10 @@ UPLOAD_TEMPLATE = <<EOS
   <input name="image" type="file" /><br />
   <input type="submit" />
 </form>
+EOS
+
+SHOW_TEMPLATE = <<EOS
+<img src="http://#{S3_BUCKET}/%{id}.jpg" />
 EOS
 
 class PopenHandler < EM::Connection
@@ -40,18 +60,25 @@ class Pinify < Goliath::API
     when '/'
       render UPLOAD_TEMPLATE
     when '/upload'
-      process_image env['params']['image']
+      process env['params']['image']
     when %r{^/([0-9a-z]+)$}
-    when %r{^/([0-9a-z]+)\.jpg$}
+      show $1
     else
       fourohfour
     end
   end
 
-  def process_image(image)
+  def process(image)
     return fourohfour unless image
     result = EM::Synchrony.popen("filter/pinify #{image[:tempfile].path}")
-    [200, { 'Content-Type' => 'image/jpg' }, result]
+    id = R.incr('last-id').to_s(36)
+    S3.store "#{id}.jpg", result
+    [302, { 'Location' => "/#{id}" }, '']
+  end
+
+  def show(id)
+    return fourohfour unless R.get('last-id').to_i >= id.to_i(36)
+    render SHOW_TEMPLATE % { :id => id }
   end
 
   def render(content)
