@@ -73,7 +73,7 @@ end
 
 get %r{^/([0-9a-zA-Z]+)$} do
   @id = params[:captures].first
-  return 404 unless redis.get('last-id').to_i >= Base62.decode(@id)
+  return 404 unless redis.get('last-id').to_i >= Base62.decode(@id).to_i
   erb :show
 end
 
