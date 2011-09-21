@@ -1,6 +1,7 @@
 require 'bundler/setup'
 require 'sinatra'
 require 'sinatra/synchrony'
+require 'sinatra/reloader'
 require 'uber-s3'
 require 'redis'
 require 'redis/connection/synchrony'
@@ -10,9 +11,9 @@ configure :production do
   S3_BUCKET = 'i.pinify.me'
 end
 
-configure :development do |c|
+configure :development do
   require 'sinatra/reloader'
-  c.also_reload 'lib/*.rb'
+  also_reload 'lib/*.rb'
   S3_BUCKET = 'z.pinify.me'
 end
 
