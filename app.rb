@@ -64,6 +64,12 @@ post '/upload' do
   end
 end
 
+get '/channel.html' do
+  etag 'facebook'
+  cache_control :public, :max_age => 86400
+  erb :facebook_channel, :layout => false
+end
+
 get %r{^/([0-9a-z]+)$} do
   @id = params[:captures].first
   return 404 unless redis.get('last-id').to_i >= @id.to_i(36)
