@@ -6,6 +6,7 @@ require 'uber-s3'
 require 'redis'
 require 'redis/connection/synchrony'
 require './lib/synchrony-popen'
+require './lib/base62'
 
 configure :production do
   set :s3_bucket, 'i.pinify.me'
@@ -55,7 +56,7 @@ post '/upload' do
   return 413 if image[:tempfile].size > 4_194_304
 
   result = EM::Synchrony.popen("filter/pinify #{image[:tempfile].path}")
-  id = redis.incr('last-id').to_s(36)
+  id = Base62.encode redis.incr('last-id')
 
   if s3.store "#{id}.jpg", result, :content_type => 'image/jpeg'
     redirect "/#{id}"
@@ -70,9 +71,9 @@ get '/channel.html' do
   erb :facebook_channel, :layout => false
 end
 
-get %r{^/([0-9a-z]+)$} do
+get %r{^/([0-9a-zA-Z]+)$} do
   @id = params[:captures].first
-  return 404 unless redis.get('last-id').to_i >= @id.to_i(36)
+  return 404 unless redis.get('last-id').to_i >= Base62.decode(@id)
   erb :show
 end
 
