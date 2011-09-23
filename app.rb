@@ -73,6 +73,7 @@ end
 
 get %r{^/([0-9a-zA-Z]+)$} do
   @id = params[:captures].first
+  @graph_photo = { :title => 'Lenna', :description => 'The original test image.' } if @id == '8'
   return 404 unless redis.get('last-id').to_i >= Base62.decode(@id).to_i
   erb :show
 end
