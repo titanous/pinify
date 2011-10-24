@@ -20,6 +20,7 @@ end
 
 configure do
   use Rack::CommonLogger
+  set :views, File.dirname(__FILE__) + '/app/views'
 end
 
 helpers do
