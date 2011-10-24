@@ -1,9 +1,10 @@
 source :rubygems
 
-gem 'sinatra', :git => 'https://github.com/sinatra/sinatra.git'
+gem 'sinatra', '~> 1.3'
 gem 'sinatra-synchrony'
-gem 'sinatra-contrib', :git => 'https://github.com/sinatra/sinatra-contrib.git'
+gem 'sinatra-contrib'
 gem 'uber-s3'
 gem 'redis'
 gem 'hiredis'
 gem 'thin'
+gem 'sinatra-assetpack'
