@@ -1,5 +1,5 @@
 <img src="http://<%= settings.s3_bucket %>/<%= @id %>.jpg" />
 
 <% if @graph_photo %>
-  <fb:add-to-timeline></fb:add-to-timeline>
+  <div class="fb-add-to-timeline" data-show-faces="false" data-mode="button"></div>
 <% end %>
