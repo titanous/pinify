@@ -1,10 +1,5 @@
-require 'bundler/setup'
-require 'sinatra'
-require 'sinatra/synchrony'
-require 'sinatra/reloader'
-require 'uber-s3'
-require 'redis'
-require 'redis/connection/synchrony'
+require 'bundler'
+Bundler.require
 require './lib/synchrony-popen'
 require './lib/base62'
 
@@ -21,6 +16,12 @@ end
 configure do
   use Rack::CommonLogger
   set :views, File.dirname(__FILE__) + '/app/views'
+
+  assets {
+    js :libs, [ '/js/ender.js' ]
+    js_compression  :uglify
+    css_compression :sqwish, :strict => true
+  }
 end
 
 helpers do
