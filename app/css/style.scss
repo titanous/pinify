@@ -1,0 +1,24 @@
+@import "compass/css3";
+
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+  background-repeat: no-repeat;
+  @include background(linear-gradient(#454545, #141414));
+  background-attachment: fixed;
+}
+
+#content {
+  height: 100%;
+  width: 900px;
+  margin-top: 50px;
+  margin-left: auto;
+  margin-right: auto;
+  @include background(image-url('printer-top.png') bottom center no-repeat, linear-gradient(#e0e1e2 50%, #f6f6f6 50%, #f6f6f6));
+  background-size: 100%, 100px 100px;
+  @include box-shadow(10px 15px 15px 5px rgba(20,20,20,0.4));
+}

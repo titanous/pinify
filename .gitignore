@@ -1,3 +1,4 @@
 *.jpg
 public
 node_modules
+.sass-cache

@@ -6,7 +6,8 @@
   <title><%= @title || 'Pinify' %></title>
 
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="css/style.css">
+
+  <%= css :style %>
 
   <% if @graph_photo %>
     <meta property="fb:app_id"      content="252217294822764">
@@ -43,7 +44,9 @@
     }());
   </script>
 
-  <%= yield %>
+  <div id="content">
+    <%= yield %>
+  </div>
 
   <script>
     var _gaq=[['_setAccount','UA-316852-15'],['_trackPageview']];

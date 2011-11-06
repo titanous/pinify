@@ -15,12 +15,22 @@ class App < Sinatra::Base
   end
 
   use Rack::CommonLogger
+
+  register Sinatra::CompassSupport
   register Sinatra::AssetPack
+
   set :root, File.dirname(__FILE__)
-  set :views, File.dirname(__FILE__) + '/app/views'
+  set :views, 'app/views'
+
+  compass = Compass.configuration
+  compass.project_path     = root
+  compass.images_dir       = 'app/images'
+  compass.http_images_path = '/images'
 
   assets {
+    serve '/images', :from => '/app/images'
     js :libs, [ '/js/ender.js' ]
+    css :style, [ '/css/*.css' ]
     js_compression  :uglify
     css_compression :sqwish, :strict => true
   }
