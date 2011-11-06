@@ -28,13 +28,14 @@ class App < Sinatra::Base
   compass.project_path     = root
   compass.images_dir       = 'app/images'
   compass.http_images_path = '/images'
+  compass.output_style     = :compressed
 
   assets {
     serve '/images', :from => '/app/images'
     js :libs, [ '/js/ender.js' ]
     css :style, [ '/css/*.css' ]
     js_compression  :uglify
-    css_compression :sqwish, :strict => true
+    css_compression :simple
   }
 
   helpers do
