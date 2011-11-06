@@ -7,6 +7,6 @@ gem 'uber-s3'
 gem 'redis', :require => ['redis', 'redis/connection/synchrony']
 gem 'hiredis'
 gem 'thin'
-gem 'sinatra-assetpack', :path => '../sinatra-assetpack', :require => 'sinatra/assetpack'
+gem 'sinatra-assetpack', :require => 'sinatra/assetpack', :git => 'git://github.com/titanous/sinatra-assetpack.git', :branch => 'asset-host'
 
 gem 'uglifier'
