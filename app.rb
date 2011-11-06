@@ -4,20 +4,22 @@ require './lib/synchrony-popen'
 require './lib/base62'
 
 class App < Sinatra::Base
+  register Sinatra::Synchrony
+  register Sinatra::CompassSupport
+  register Sinatra::AssetPack
+
+  use Rack::CommonLogger
+
   configure :production do
     set :s3_bucket, 'i.pinify.me'
   end
 
   configure :development do
     require 'sinatra/reloader'
+    register Sinatra::Reloader
     also_reload 'lib/*.rb'
     set :s3_bucket, 'z.pinify.me'
   end
-
-  use Rack::CommonLogger
-
-  register Sinatra::CompassSupport
-  register Sinatra::AssetPack
 
   set :root, File.dirname(__FILE__)
   set :views, 'app/views'
