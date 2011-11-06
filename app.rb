@@ -33,7 +33,7 @@ class App < Sinatra::Base
   assets {
     serve '/images', :from => '/app/images'
     js :libs, [ '/js/ender.js' ]
-    css :style, [ '/css/*.css' ]
+    css :styles, [ '/css/*.css' ]
     js_compression  :uglify
     css_compression :simple
   }
