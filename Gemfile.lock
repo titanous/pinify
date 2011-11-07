@@ -1,7 +1,6 @@
 GIT
   remote: git://github.com/titanous/sinatra-assetpack.git
-  revision: 8fe2776a4de61d55bb4ac383e4688c38cd514e2c
-  branch: asset-host
+  revision: 15e0829ca9cecda2e4023b25dd287d7ee2060ee5
   specs:
     sinatra-assetpack (0.0.10)
       jsmin
