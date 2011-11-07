@@ -8,6 +8,7 @@ class App < Sinatra::Base
   register Sinatra::AssetPack
 
   use Rack::CommonLogger
+  use Rack::Deflater
 
   configure :production do
     set :s3_bucket, 'i.pinify.me'
