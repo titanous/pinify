@@ -4,7 +4,6 @@ require './lib/synchrony-popen'
 require './lib/base62'
 
 class App < Sinatra::Base
-  register Sinatra::Synchrony
   register Sinatra::CompassSupport
   register Sinatra::AssetPack
 
@@ -23,6 +22,7 @@ class App < Sinatra::Base
 
   set :root, File.dirname(__FILE__)
   set :views, 'app/views'
+  disable :threaded
 
   compass = Compass.configuration
   compass.project_path     = root
