@@ -20,13 +20,22 @@ body {
   margin-right: auto;
   padding-left: 60px;
   padding-right: 100px;
-  @include background(image-url('printer-top.png'),
-                      image-url('hole-left.png'),
+  @include background(image-url('hole-left.png'),
                       image-url('hole-right.png'),
                       linear-gradient(#e0e1e2 50%, #f6f6f6 50%, #f6f6f6),
                       image-url('printer-bottom.png'));
-  background-repeat: no-repeat, repeat-y, repeat-y, repeat, no-repeat;
-  background-position: bottom center, 9% 0, 81% 0, top, bottom center;
-  background-size: 100%, 31px 49px, 31px 49px, 100px 100px, 100%;
-  background-clip: border-box, border-box, border-box, content-box, border-box;
+  background-repeat: repeat-y, repeat-y, repeat, no-repeat;
+  background-position: 9% 0, 86% 0, top, bottom center;
+  background-size: 31px 49px, 31px 49px, 100px 100px, 100%;
+  background-clip: border-box, border-box, content-box, border-box;
+}
+
+#printer {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  margin: 0 0 0 -426px;
+  width: 860px;
+  height: 309px;
+  @include background(image-url('printer-top.png') no-repeat bottom center)
 }
