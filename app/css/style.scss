@@ -21,10 +21,12 @@ body {
   padding-left: 60px;
   padding-right: 100px;
   @include background(image-url('printer-top.png'),
+                      image-url('hole-left.png'),
+                      image-url('hole-right.png'),
                       linear-gradient(#e0e1e2 50%, #f6f6f6 50%, #f6f6f6),
                       image-url('printer-bottom.png'));
-  background-repeat: no-repeat, repeat, no-repeat;
-  background-position: bottom center, top, bottom center;
-  background-size: 100%, 100px 100px, 100%;
-  background-clip: border-box, content-box, border-box;
+  background-repeat: no-repeat, repeat-y, repeat-y, repeat, no-repeat;
+  background-position: bottom center, 9% 0, 81% 0, top, bottom center;
+  background-size: 100%, 31px 49px, 31px 49px, 100px 100px, 100%;
+  background-clip: border-box, border-box, border-box, content-box, border-box;
 }
