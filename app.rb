@@ -50,7 +50,7 @@ class App < Sinatra::Base
 
     def s3
       @s3 ||= UberS3.new(
-        :access_key         => ENV['AWS_ACCESS_KEY'],
+        :access_key         => ENV['AWS_ACCESS_KEY_ID'],
         :secret_access_key  => ENV['AWS_SECRET_ACCESS_KEY'],
         :bucket             => settings.s3_bucket,
         :persistent         => true,
@@ -76,7 +76,7 @@ class App < Sinatra::Base
     result = EM::Synchrony.popen("filter/pinify #{image[:tempfile].path}")
     id = Base62.encode redis.incr('last-id')
 
-    if s3.store "#{id}.jpg", result, :content_type => 'image/jpeg'
+    if s3.store "#{id}.png", result, :content_type => 'image/png'
       redirect "/#{id}"
     else
       return 500
