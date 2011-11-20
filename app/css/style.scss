@@ -22,7 +22,7 @@ body {
   padding-right: 100px;
   @include background(image-url('hole-left.png'),
                       image-url('hole-right.png'),
-                      linear-gradient(#e0e1e2 50%, #f6f6f6 50%, #f6f6f6),
+                      linear-gradient(#fafbfb 50%, #f6f6f6 50%, #f6f6f6),
                       image-url('printer-bottom.png'));
   background-repeat: repeat-y, repeat-y, repeat, no-repeat;
   background-position: 9% 0, 86% 0, top, bottom center;
