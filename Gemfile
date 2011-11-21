@@ -10,5 +10,6 @@ gem 'thin'
 gem 'sinatra-assetpack', :require => 'sinatra/assetpack', :git => 'git://github.com/titanous/sinatra-assetpack.git'
 gem 'sinatra-support', :require => 'sinatra/support'
 gem 'compass', '0.12.alpha.0'
+gem 'coffee-script'
 
 gem 'uglifier'
