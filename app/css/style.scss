@@ -10,12 +10,12 @@ body {
   background-repeat: no-repeat;
   @include background(linear-gradient(#454545, #141414));
   background-attachment: fixed;
+  padding-top: 30px;
 }
 
 #content {
   height: 100%;
   width: 700px;
-  margin-top: 30px;
   margin-left: auto;
   margin-right: auto;
   padding-left: 60px;
@@ -38,4 +38,15 @@ body {
   width: 860px;
   height: 309px;
   @include background(image-url('printer-top.png') no-repeat bottom center)
+}
+
+#logo {
+  font-family: 'Monoton';
+  font-size: 3em;
+  font-weight: normal;
+  margin: 0;
+  padding: 0;
+  left: 45%;
+  bottom: 0;
+  position: absolute;
 }

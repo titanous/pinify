@@ -7,6 +7,7 @@
 
   <meta name="viewport" content="width=device-width,initial-scale=1">
 
+  <link href='http://fonts.googleapis.com/css?family=Monoton' rel='stylesheet' type='text/css'>
   <%= css :styles %>
 
   <% if @graph_photo %>
@@ -44,7 +45,9 @@
     }());
   </script>
 
-  <div id="printer"></div>
+  <div id="printer">
+    <h2 id="logo">Pinify</div>
+  </div>
   <div id="content">
     <%= yield %>
   </div>
