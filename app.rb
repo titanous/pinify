@@ -15,9 +15,6 @@ class App < Sinatra::Base
   end
 
   configure :development do
-    require 'sinatra/reloader'
-    register Sinatra::Reloader
-    also_reload 'lib/*.rb'
     set :s3_bucket, 'z.pinify.me'
   end
 

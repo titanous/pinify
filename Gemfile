@@ -2,7 +2,6 @@ source :rubygems
 
 gem 'sinatra', '~> 1.3', :require => 'sinatra/base'
 gem 'sinatra-synchrony', :require => 'sinatra/syncrony'
-gem 'sinatra-contrib', :require => false
 gem 'uber-s3'
 gem 'redis', :require => ['redis', 'redis/connection/synchrony']
 gem 'hiredis'
