@@ -11,7 +11,7 @@ noop = (e) ->
   e.preventDefault()
 
 showUploadForm = (e) ->
-  $('#fileinput').click()
+  $('#fileinput').css(width: '100px', height: '20px').click()
   noop e
 
 uploadForm = (e) ->
