@@ -545,9 +545,10 @@
           , optgroup: option }
       , stateAttributes = /^checked|selected$/
       , ie = /msie/i.test(navigator.userAgent)
-      , uidList = []
+      , uidMap = {}
       , uuids = 0
       , digit = /^-?[\d\.]+$/
+      , dattr = /^data-(.+)$/
       , px = 'px'
       , setAttribute = 'setAttribute'
       , getAttribute = 'getAttribute'
@@ -587,10 +588,42 @@
       return ar
     }
   
+    function deepEach(ar, fn, scope) {
+      for (var i = 0, l = ar.length; i < l; i++) {
+        if (isNode(ar[i])) {
+          deepEach(ar[i].childNodes, fn, scope);
+          fn.call(scope || ar[i], ar[i], i, ar);
+        }
+      }
+      return ar;
+    }
+  
     function camelize(s) {
       return s.replace(/-(.)/g, function (m, m1) {
         return m1.toUpperCase()
       })
+    }
+  
+    function decamelize(s) {
+      return s ? s.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase() : s
+    }
+  
+    function data(el) {
+      el[getAttribute]('data-node-uid') || el[setAttribute]('data-node-uid', ++uuids)
+      uid = el[getAttribute]('data-node-uid')
+      return uidMap[uid] || (uidMap[uid] = {})
+    }
+  
+    function clearData(el) {
+      uid = el[getAttribute]('data-node-uid')
+      uid && (delete uidMap[uid])
+    }
+  
+    function dataValue(d) {
+      try {
+        return d === 'true' ? true : d === 'false' ? false : d === 'null' ? null : !isNaN(d) ? parseFloat(d) : d;
+      } catch(e) {}
+      return undefined
     }
   
     function isNode(node) {
@@ -736,6 +769,10 @@
           return each(this, fn, scope)
         }
   
+      , deepEach: function (fn, scope) {
+          return deepEach(this, fn, scope)
+        }
+  
       , map: function (fn, reject) {
           var m = [], n, i
           for (i = 0; i < this.length; i++) {
@@ -746,11 +783,11 @@
         }
   
       , first: function () {
-          return bonzo(this[0])
+          return bonzo(this.length ? this[0] : [])
         }
   
       , last: function () {
-          return bonzo(this[this.length - 1])
+          return bonzo(this.length ? this[this.length - 1] : [])
         }
   
       , html: function (h, text) {
@@ -760,13 +797,12 @@
               'textContent' :
             'innerHTML', m;
           function append(el) {
-            while (el.firstChild) el.removeChild(el.firstChild)
             each(normalize(h), function (node) {
               el.appendChild(node)
             })
           }
           return typeof h !== 'undefined' ?
-              this.each(function (el) {
+              this.empty().each(function (el) {
                 !text && (m = el.tagName.match(specialTags)) ?
                   append(el, m[0]) :
                   (el[method] = h)
@@ -903,6 +939,8 @@
         }
   
       , replaceWith: function(html) {
+          this.deepEach(clearData)
+  
           return this.each(function (el) {
             el.parentNode.replaceChild(bonzo.create(html)[0], el)
           })
@@ -954,6 +992,12 @@
             return this.each(function (el) {
               xy(el, x, y)
             })
+          }
+          if (!this[0]) return {
+              top: 0
+            , left: 0
+            , height: 0
+            , width: 0
           }
           var el = this[0]
             , width = el.offsetWidth
@@ -1029,23 +1073,26 @@
         }
   
       , data: function (k, v) {
-          var el = this[0], uid, o
+          var el = this[0], uid, o, m
           if (typeof v === 'undefined') {
-            el[getAttribute]('data-node-uid') || el[setAttribute]('data-node-uid', ++uuids)
-            uid = el[getAttribute]('data-node-uid')
-            uidList[uid] || (uidList[uid] = {})
-            return uidList[uid][k]
+            o = data(el)
+            if (typeof k === 'undefined') {
+              each(el.attributes, function(a) {
+                (m = (''+a.name).match(dattr)) && (o[camelize(m[1])] = dataValue(a.value))
+              })
+              return o
+            } else {
+              return typeof o[k] === 'undefined' ?
+                (o[k] = dataValue(this.attr('data-' + decamelize(k)))) : o[k]
+            }
           } else {
-            return this.each(function (el) {
-              el[getAttribute]('data-node-uid') || el[setAttribute]('data-node-uid', ++uuids)
-              uid = el[getAttribute]('data-node-uid')
-              o = uidList[uid] || (uidList[uid] = {})
-              o[k] = v
-            })
+            return this.each(function (el) { data(el)[k] = v })
           }
         }
   
       , remove: function () {
+          this.deepEach(clearData)
+  
           return this.each(function (el) {
             el[parentNode] && el[parentNode].removeChild(el)
           })
@@ -1053,6 +1100,8 @@
   
       , empty: function () {
           return this.each(function (el) {
+            deepEach(el.childNodes, clearData)
+  
             while (el.firstChild) {
               el.removeChild(el.firstChild)
             }
@@ -1073,9 +1122,9 @@
           return scroll.call(this, x, null, 'x')
         }
   
-      , toggle: function(callback) {
+      , toggle: function (callback, type) {
           this.each(function (el) {
-            el.style.display = (el.offsetWidth || el.offsetHeight) ? 'none' : 'block'
+            el.style.display = (el.offsetWidth || el.offsetHeight) ? 'none' : type || ''
           })
           callback && callback()
           return this
@@ -1217,9 +1266,7 @@
     }
   
     function indexOf(ar, val) {
-      for (var i = 0; i < ar.length; i++) {
-        if (ar[i] === val) return i
-      }
+      for (var i = 0; i < ar.length; i++) if (ar[i] === val) return i
       return -1
     }
   
@@ -1257,11 +1304,11 @@
       },
   
       first: function () {
-        return $(this[0])
+        return $(this.length ? this[0] : this)
       },
   
       last: function () {
-        return $(this[this.length - 1])
+        return $(this.length ? this[this.length - 1] : [])
       },
   
       next: function () {
@@ -1322,6 +1369,7 @@
       return v ?
         self.css(which, v) :
         function (r) {
+          if (!self[0]) return 0
           r = parseInt(self.css(which), 10);
           return isNaN(r) ? self[0]['offset' + which.replace(/^\w/, function (m) {return m.toUpperCase()})] : r
         }()
@@ -1421,16 +1469,20 @@
     var context = this
       , doc = document
       , old = context.qwery
-      , c, i, j, k, l, m, o, p, r, v
-      , el, node, found, classes, item, items, token
       , html = doc.documentElement
+      , byClass = 'getElementsByClassName'
+      , byTag = 'getElementsByTagName'
+      , byId = 'getElementById'
+      , qSA = 'querySelectorAll'
       , id = /#([\w\-]+)/
       , clas = /\.[\w\-]+/g
-      , idOnly = /^#([\w\-]+$)/
+      , idOnly = /^#([\w\-]+)$/
       , classOnly = /^\.([\w\-]+)$/
       , tagOnly = /^([\w\-]+)$/
       , tagAndOrClass = /^([\w]+)?\.([\w\-]+)$/
-      , normalizr = /\s*([\s\+\~>])\s*/g
+      , easy = new RegExp(idOnly.source + '|' + tagOnly.source + '|' + classOnly.source)
+      , splittable = /(^|,)\s*[>~+]/
+      , normalizr = /^\s+|\s*([,\s\+\~>]|$)\s*/g
       , splitters = /[\s\>\+\~]/
       , splittersMore = /(?![\s\w\-\/\?\&\=\:\.\(\)\!,@#%<>\{\}\$\*\^'"]*\]|[\s\w\+\-]*\))/
       , specialChars = /([.*+?\^=!:${}()|\[\]\/\\])/g
@@ -1440,23 +1492,26 @@
       , dividers = new RegExp('(' + splitters.source + ')' + splittersMore.source, 'g')
       , tokenizr = new RegExp(splitters.source + splittersMore.source)
       , chunker = new RegExp(simple.source + '(' + attr.source + ')?' + '(' + pseudo.source + ')?')
+        // check if we can pass a selector to a non-CSS3 compatible qSA.
+        // *not* suitable for validating a selector, it's too lose; it's the users' responsibility to pass valid selectors
+        // this regex must be kept in sync with the one in tests.js
+      , css2 = /^(([\w\-]*[#\.]?[\w\-]+|\*)?(\[[\w\-]+([\~\|]?=['"][ \w\-\/\?\&\=\:\.\(\)\!,@#%<>\{\}\$\*\^]+["'])?\])?(\:(link|visited|active|hover))?([\s>+~\.,]|(?:$)))+$/
       , walker = {
-        ' ': function (node) {
-          return node && node !== html && node.parentNode
+          ' ': function (node) {
+            return node && node !== html && node.parentNode
+          }
+        , '>': function (node, contestant) {
+            return node && node.parentNode == contestant.parentNode && node.parentNode
+          }
+        , '~': function (node) {
+            return node && node.previousSibling
+          }
+        , '+': function (node, contestant, p1, p2) {
+            if (!node) return false
+            return (p1 = previous(node)) && (p2 = previous(contestant)) && p1 == p2 && p1
+          }
         }
-      , '>': function (node, contestant) {
-          return node && node.parentNode == contestant.parentNode && node.parentNode
-        }
-      , '~': function (node) {
-          return node && node.previousSibling
-        }
-      , '+': function (node, contestant, p1, p2) {
-          if (!node) return false
-          p1 = previous(node)
-          p2 = previous(contestant)
-          return p1 && p2 && p1 == p2 && p1
-        }
-    }
+  
     function cache() {
       this.c = {}
     }
@@ -1465,8 +1520,7 @@
           return this.c[k] || undefined
         }
       , s: function (k, v) {
-          this.c[k] = v
-          return v
+          return (this.c[k] = v)
         }
     }
   
@@ -1475,12 +1529,28 @@
       , attrCache = new cache()
       , tokenCache = new cache()
   
+    function classRegex(c) {
+      return classCache.g(c) || classCache.s(c, new RegExp('(^|\\s+)' + c + '(\\s+|$)'));
+    }
+  
+    // not quite as fast as inline loops in older browsers so don't use liberally
+    function each(a, fn) {
+      var i = 0, l = a.length
+      for (; i < l; i++) fn.call(null, a[i])
+    }
+  
     function flatten(ar) {
-      r = []
-      for (i = 0, l = ar.length; i < l; i++) {
-        if (arrayLike(ar[i])) r = r.concat(ar[i])
-        else r.push(ar[i])
-      }
+      var r = []
+      each(ar, function(a) {
+        if (arrayLike(a)) r = r.concat(a)
+        else r[r.length] = a
+      });
+      return r
+    }
+  
+    function arrayify(ar) {
+      var i = 0, l = ar.length, r = []
+      for (; i < l; i++) r[i] = ar[i]
       return r
     }
   
@@ -1493,27 +1563,22 @@
       return query.match(chunker)
     }
   
-    // this next method expect at most these args
+    // called using `this` as element and arguments from regex group results.
     // given => div.hello[title="world"]:foo('bar')
-  
     // div.hello[title="world"]:foo('bar'), div, .hello, [title="world"], title, =, world, :foo('bar'), foo, ('bar'), bar]
-  
     function interpret(whole, tag, idsAndClasses, wholeAttribute, attribute, qualifier, value, wholePseudo, pseudo, wholePseudoVal, pseudoVal) {
-      var m, c, k;
-      if (tag && this.tagName.toLowerCase() !== tag) return false
+      var i, m, k, o, classes
+      if (tag && this.tagName && this.tagName.toLowerCase() !== tag) return false
       if (idsAndClasses && (m = idsAndClasses.match(id)) && m[1] !== this.id) return false
       if (idsAndClasses && (classes = idsAndClasses.match(clas))) {
         for (i = classes.length; i--;) {
-          c = classes[i].slice(1)
-          if (!(classCache.g(c) || classCache.s(c, new RegExp('(^|\\s+)' + c + '(\\s+|$)'))).test(this.className)) {
-            return false
-          }
+          if (!classRegex(classes[i].slice(1)).test(this.className)) return false
         }
       }
       if (pseudo && qwery.pseudos[pseudo] && !qwery.pseudos[pseudo](this, pseudoVal)) {
         return false
       }
-      if (wholeAttribute && !value) {
+      if (wholeAttribute && !value) { // select is just for existance of attrib
         o = this.attributes
         for (k in o) {
           if (Object.prototype.hasOwnProperty.call(o, k) && (o[k].name || k) == attribute) {
@@ -1521,7 +1586,8 @@
           }
         }
       }
-      if (wholeAttribute && !checkAttr(qualifier, this.getAttribute(attribute) || '', value)) {
+      if (wholeAttribute && !checkAttr(qualifier, getAttr(this, attribute) || '', value)) {
+        // select is for attrib equality
         return false
       }
       return this
@@ -1549,47 +1615,73 @@
       return 0
     }
   
-    function _qwery(selector) {
-      var r = [], ret = [], i, j = 0, k, l, m, p, token, tag, els, root, intr, item, children
+    // given a selector, first check for simple cases then collect all base candidate matches and filter
+    function _qwery(selector, _root) {
+      var r = [], ret = [], i, l, m, token, tag, els, intr, item, root = _root
         , tokens = tokenCache.g(selector) || tokenCache.s(selector, selector.split(tokenizr))
-        , dividedTokens = selector.match(dividers), dividedToken
-      tokens = tokens.slice(0) // this makes a copy of the array so the cached original is not effected
+        , dividedTokens = selector.match(dividers)
   
       if (!tokens.length) return r
   
-      token = tokens.pop()
-      root = tokens.length && (m = tokens[tokens.length - 1].match(idOnly)) ? doc.getElementById(m[1]) : doc
-  
+      token = (tokens = tokens.slice(0)).pop() // copy cached tokens, take the last one
+      if (tokens.length && (m = tokens[tokens.length - 1].match(idOnly))) root = _root[byId](m[1])
       if (!root) return r
   
       intr = q(token)
-      els = dividedTokens && /^[+~]$/.test(dividedTokens[dividedTokens.length - 1]) ? function (r) {
+      // collect base candidates to filter
+      els = root !== _root && root.nodeType !== 9 && dividedTokens && /^[+~]$/.test(dividedTokens[dividedTokens.length - 1]) ?
+        function (r) {
           while (root = root.nextSibling) {
-            root.nodeType == 1 && (intr[1] ? intr[1] == root.tagName.toLowerCase() : 1) && r.push(root)
+            root.nodeType == 1 && (intr[1] ? intr[1] == root.tagName.toLowerCase() : 1) && (r[r.length] = root)
           }
           return r
         }([]) :
-        root.getElementsByTagName(intr[1] || '*')
-      for (i = 0, l = els.length; i < l; i++) if (item = interpret.apply(els[i], intr)) r[j++] = item
+        root[byTag](intr[1] || '*')
+      // filter elements according to the right-most part of the selector
+      for (i = 0, l = els.length; i < l; i++) {
+        if (item = interpret.apply(els[i], intr)) r[r.length] = item
+      }
       if (!tokens.length) return r
   
-      // loop through all descendent tokens
-      for (j = 0, l = r.length, k = 0; j < l; j++) {
-        p = r[j]
-        // loop through each token backwards crawling up tree
-        for (i = tokens.length; i--;) {
-          // loop through parent nodes
-          while (p = walker[dividedTokens[i]](p, r[j])) {
-            if (found = interpret.apply(p, q(tokens[i]))) break;
-          }
-        }
-        found && (ret[k++] = r[j])
-      }
+      // filter further according to the rest of the selector (the left side)
+      each(r, function(e) { if (ancestorMatch(e, tokens, dividedTokens)) ret[ret.length] = e })
       return ret
     }
   
+    // compare element to a selector
+    function is(el, selector, root) {
+      if (isNode(selector)) return el == selector
+      if (arrayLike(selector)) return !!~flatten(selector).indexOf(el) // if selector is an array, is el a member?
+  
+      var selectors = selector.split(','), tokens, dividedTokens
+      while (selector = selectors.pop()) {
+        tokens = tokenCache.g(selector) || tokenCache.s(selector, selector.split(tokenizr))
+        dividedTokens = selector.match(dividers)
+        tokens = tokens.slice(0) // copy array
+        if (interpret.apply(el, q(tokens.pop())) && (!tokens.length || ancestorMatch(el, tokens, dividedTokens, root))) {
+          return true
+        }
+      }
+    }
+  
+    // given elements matching the right-most part of a selector, filter out any that don't match the rest
+    function ancestorMatch(el, tokens, dividedTokens, root) {
+      var cand
+      // recursively work backwards through the tokens and up the dom, covering all options
+      function crawl(e, i, p) {
+        while (p = walker[dividedTokens[i]](p, e)) {
+          if (isNode(p) && (found = interpret.apply(p, q(tokens[i])))) {
+            if (i) {
+              if (cand = crawl(p, i - 1, p)) return cand
+            } else return p
+          }
+        }
+      }
+      return (cand = crawl(el, tokens.length - 1, el)) && (!root || isAncestor(cand, root))
+    }
+  
     function isNode(el) {
-      return (el && el.nodeType && (el.nodeType == 1 || el.nodeType == 9))
+      return el && typeof el === 'object' && el.nodeType && (el.nodeType == 1 || el.nodeType == 9)
     }
   
     function uniq(ar) {
@@ -1616,16 +1708,40 @@
     }
   
     function qwery(selector, _root) {
-      var root = normalizeRoot(_root)
+      var m, el, root = normalizeRoot(_root)
   
+      // easy, fast cases that we can dispatch with simple DOM calls
       if (!root || !selector) return []
       if (selector === window || isNode(selector)) {
         return !_root || (selector !== window && isNode(root) && isAncestor(selector, root)) ? [selector] : []
       }
       if (selector && arrayLike(selector)) return flatten(selector)
-      if (m = selector.match(idOnly)) return (el = doc.getElementById(m[1])) ? [el] : []
-      if (m = selector.match(tagOnly)) return flatten(root.getElementsByTagName(m[1]))
+      if (m = selector.match(easy)) {
+        if (m[1]) return (el = root[byId](m[1])) ? [el] : []
+        if (m[2]) return arrayify(root[byTag](m[2]))
+        if (supportsCSS3 && m[3]) return arrayify(root[byClass](m[3]))
+      }
+  
       return select(selector, root)
+    }
+  
+    // where the root is not document and a relationship selector is first we have to
+    // do some awkward adjustments to get it to work, even with qSA
+    function collectSelector(root, collector) {
+      return function(s) {
+        var oid, nid
+        if (splittable.test(s)) {
+          if (root.nodeType !== 9) {
+           // make sure the el has an id, rewrite the query, set root to doc and run it
+           if (!(nid = oid = root.getAttribute('id'))) root.setAttribute('id', nid = '__qwerymeupscotty')
+           s = '[id="' + nid + '"]' + s // avoid byId and allow us to match context element
+           collector(root.parentNode || root, s, true)
+           oid || root.removeAttribute('id')
+          }
+          return;
+        }
+        s.length && collector(root, s, false)
+      }
     }
   
     var isAncestor = 'compareDocumentPosition' in html ?
@@ -1633,56 +1749,89 @@
         return (container.compareDocumentPosition(element) & 16) == 16
       } : 'contains' in html ?
       function (element, container) {
-        container = container == doc || container == window ? html : container
+        container = container.nodeType === 9 || container == window ? html : container
         return container !== element && container.contains(element)
       } :
       function (element, container) {
         while (element = element.parentNode) if (element === container) return 1
         return 0
-      },
-  
-    supportsCSS3 = function () {
-      if (!doc.querySelector || !doc.querySelectorAll) return false
-  
-      try { return (doc.querySelectorAll(':nth-of-type(1)').length) }
-      catch (e) { return false }
-    }(),
-  
-    select = supportsCSS3 ?
-      function (selector, root) {
-        return doc.getElementsByClassName && (m = selector.match(classOnly)) ?
-          flatten(root.getElementsByClassName(m[1])) :
-          flatten(root.querySelectorAll(selector))
-      } :
-      function (selector, root) {
+      }
+    , getAttr = function() {
+        // detect buggy IE src/href getAttribute() call
+        var e = doc.createElement('p')
+        return ((e.innerHTML = '<a href="#x">x</a>') && e.firstChild.getAttribute('href') != '#x') ?
+          function(e, a) {
+            return a === 'class' ? e.className : (a === 'href' || a === 'src') ?
+              e.getAttribute(a, 2) : e.getAttribute(a)
+          } :
+          function(e, a) { return e.getAttribute(a) }
+     }()
+      // does native qSA support CSS3 level selectors
+    , supportsCSS3 = function () {
+        if (doc[byClass] && doc.querySelector && doc[qSA]) {
+          try {
+            var p = doc.createElement('p')
+            p.innerHTML = '<a/>'
+            return p[qSA](':nth-of-type(1)').length
+          } catch (e) { }
+        }
+        return false
+      }()
+      // native support for CSS3 selectors
+    , selectCSS3 = function (selector, root) {
+        var result = [], ss, e
+        if (root.nodeType === 9 || !splittable.test(selector)) {
+          // most work is done right here, defer to qSA
+          return arrayify(root[qSA](selector))
+        }
+        // special case where we need the services of `collectSelector()`
+        each(ss = selector.split(','), collectSelector(root, function(ctx, s) {
+          e = ctx[qSA](s)
+          if (e.length == 1) result[result.length] = e.item(0)
+          else if (e.length) result = result.concat(arrayify(e))
+        }))
+        return ss.length > 1 && result.length > 1 ? uniq(result) : result
+      }
+      // native support for CSS2 selectors only
+    , selectCSS2qSA = function (selector, root) {
+        var i, r, l, ss, result = []
         selector = selector.replace(normalizr, '$1')
-        var result = [], element, collection, collections = [], i
+        // safe to pass whole selector to qSA
+        if (!splittable.test(selector) && css2.test(selector)) return arrayify(root[qSA](selector))
+        each(ss = selector.split(','), collectSelector(root, function(ctx, s, rewrite) {
+          // use native qSA if selector is compatile, otherwise use _qwery()
+          r = css2.test(s) ? ctx[qSA](s) : _qwery(s, ctx)
+          for (i = 0, l = r.length; i < l; i++) {
+            if (ctx.nodeType === 9 || rewrite || isAncestor(r[i], root)) result[result.length] = r[i]
+          }
+        }))
+        return ss.length > 1 && result.length > 1 ? uniq(result) : result
+      }
+      // no native selector support
+    , selectNonNative = function (selector, root) {
+        var result = [], m, i, l, r, ss
+        selector = selector.replace(normalizr, '$1')
         if (m = selector.match(tagAndOrClass)) {
-          items = root.getElementsByTagName(m[1] || '*');
-          r = classCache.g(m[2]) || classCache.s(m[2], new RegExp('(^|\\s+)' + m[2] + '(\\s+|$)'));
-          for (i = 0, l = items.length, j = 0; i < l; i++) {
-            r.test(items[i].className) && (result[j++] = items[i]);
+          r = classRegex(m[2])
+          items = root[byTag](m[1] || '*')
+          for (i = 0, l = items.length; i < l; i++) {
+            if (r.test(items[i].className)) result[result.length] = items[i]
           }
           return result
         }
-        for (i = 0, items = selector.split(','), l = items.length; i < l; i++) {
-          collections[i] = _qwery(items[i])
-        }
-        for (i = 0, l = collections.length; i < l && (collection = collections[i]); i++) {
-          var ret = collection
-          if (root !== doc) {
-            ret = []
-            for (j = 0, m = collection.length; j < m && (element = collection[j]); j++) {
-              // make sure element is a descendent of root
-              isAncestor(element, root) && ret.push(element)
-            }
+        // more complex selector, get `_qwery()` to do the work for us
+        each(ss = selector.split(','), collectSelector(root, function(ctx, s, rewrite) {
+          r = _qwery(s, ctx)
+          for (i = 0, l = r.length; i < l; i++) {
+            if (ctx.nodeType === 9 || rewrite || isAncestor(r[i], root)) result[result.length] = r[i]
           }
-          result = result.concat(ret)
-        }
-        return uniq(result)
+        }))
+        return ss.length > 1 && result.length > 1 ? uniq(result) : result
       }
+    , select = supportsCSS3 ? selectCSS3 : doc[qSA] ? selectCSS2qSA : selectNonNative
   
     qwery.uniq = uniq
+    qwery.is = is
     qwery.pseudos = {}
   
     qwery.noConflict = function () {
@@ -1692,39 +1841,25 @@
   
     return qwery
   })
+  
 
   provide("qwery", module.exports);
 
   !function (doc, $) {
-    var q = require('qwery')
-      , table = 'table'
-      , nodeMap = {
-            thead: table
-          , tbody: table
-          , tfoot: table
-          , tr: 'tbody'
-          , th: 'tr'
-          , td: 'tr'
-          , fieldset: 'form'
-          , option: 'select'
-        }
-    function create(node, root) {
-      var tag = /^\s*<([^\s>]+)\s*/.exec(node)[1]
-        , el = (root || doc).createElement(nodeMap[tag] || 'div'), els = []
-  
-      el.innerHTML = node
-      var nodes = el.childNodes
-      el = el.firstChild
-      el.nodeType == 1 && els.push(el)
-      while (el = el.nextSibling) (el.nodeType == 1) && els.push(el)
-      return els
-    }
-  
-    $._select = function (s, r) {
-      return /^\s*</.test(s) ? create(s, r) : q(s, r)
-    }
+    var q = require('qwery'), b
   
     $.pseudos = q.pseudos
+  
+    $._select = function (s, r) {
+      // detect if sibling module 'bonzo' is available at run-time
+      // rather than load-time since technically it's not a dependency and
+      // can be loaded in any order
+      // hence the lazy function re-definition
+      $._select = !(b = require('bonzo')) ? q : function (s, r) {
+        return /^\s*</.test(s) ? b.create(s, r) : q(s, r)
+      }
+      return b && /^\s*</.test(s) ? b.create(s, r) : q(s, r)
+    }
   
     $.ender({
       find: function (s) {
@@ -1741,6 +1876,15 @@
           this[i] = plus[j]
         }
         return this
+      }
+      , is: function(s, r) {
+        var i, l
+        for (i = 0, l = this.length; i < l; i++) {
+          if (q.is(this[i], s, r)) {
+            return true
+          }
+        }
+        return false
       }
     }, true)
   }(document, ender);
@@ -2280,12 +2424,13 @@
       var _ref;
       o.method = 'POST';
       o.type = 'json';
+      o.processData = false;
       if ((_ref = o.headers) == null) {
         o.headers = {};
       }
       o.headers['X-File-Name'] = encodeURIComponent(o.data.name);
       o.headers['Content-Type'] = 'application/octet-stream';
-      return $.ajax(s);
+      return $.ajax(o);
     };
   })(typeof exports !== "undefined" && exports !== null ? exports : (this['upload'] = {}));
 

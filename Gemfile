@@ -10,5 +10,6 @@ gem 'sinatra-assetpack', :require => 'sinatra/assetpack', :git => 'git://github.
 gem 'sinatra-support', :require => 'sinatra/support'
 gem 'compass', '0.12.alpha.0'
 gem 'coffee-script'
+gem 'json'
 
 gem 'uglifier'

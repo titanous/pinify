@@ -2,6 +2,7 @@ require 'bundler'
 Bundler.require
 require './lib/synchrony-popen'
 require './lib/base62'
+require 'tempfile'
 
 class App < Sinatra::Base
   register Sinatra::CompassSupport
@@ -30,7 +31,7 @@ class App < Sinatra::Base
 
   assets {
     serve '/images', :from => '/app/images'
-    js :libs, [ '/js/ender.js' ]
+    js :libs, %w(/js/ender.js /js/app.js)
     css :styles, [ '/css/*.css' ]
     js_compression  :uglify
     css_compression :simple
@@ -65,16 +66,24 @@ class App < Sinatra::Base
   end
 
   post '/upload' do
-    image = params[:image]
-    return 404 unless image
-    return 415 unless image[:type] =~ %r{^image/}
-    return 413 if image[:tempfile].size > 4_194_304
+    return 413 if request.body.size > 4_194_304
+    return 404 unless env['HTTP_X_FILE_NAME']
+    ext = '.' + env['HTTP_X_FILE_NAME'].split('.').last
 
-    result = EM::Synchrony.popen("filter/pinify #{image[:tempfile].path}")
+    begin
+      file = Tempfile.new(['img', ext], :encoding => 'binary')
+      file.write request.body.read
+      file.close
+      result = EM::Synchrony.popen("filter/pinify #{file.path}")
+    ensure
+      file.unlink
+    end
+
     id = Base62.encode redis.incr('last-id')
 
     if s3.store "#{id}.png", result, :content_type => 'image/png'
-      redirect "/#{id}"
+      content_type :json
+      { :id => id }.to_json
     else
       return 500
     end
@@ -95,9 +104,5 @@ class App < Sinatra::Base
 
   error 413 do
     '<h1>413 ePenis Too Large</h1>'
-  end
-
-  error 415 do
-    '<h1>415 Unsupported Media Type</h1>'
   end
 end
