@@ -89,15 +89,8 @@ class App < Sinatra::Base
     end
   end
 
-  get '/channel.html' do
-    etag 'facebook'
-    cache_control :public, :max_age => 86400
-    erb :facebook_channel, :layout => false
-  end
-
   get %r{^/([0-9a-zA-Z]+)$} do
     @id = params[:captures].first
-    @graph_photo = { :title => 'Lenna', :description => 'The original test image.' } if @id == '8'
     return 404 unless redis.get('last-id').to_i >= Base62.decode(@id).to_i
     erb :show
   end
