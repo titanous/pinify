@@ -65,7 +65,7 @@ class App < Sinatra::Base
   end
 
   post '/upload' do
-    return 413 if request.body.size > 4_194_304
+    return 413 if request.body.respond_to?(:size) && request.body.size > 4_194_304
     return 404 unless env['HTTP_X_FILE_NAME']
     ext = '.' + env['HTTP_X_FILE_NAME'].split('.').last
 
