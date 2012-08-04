@@ -35,7 +35,6 @@ class App < Sinatra::Base
     css :styles, [ '/css/*.css' ]
     js_compression  :uglify
     css_compression :simple
-    host 'cdn.pinify.me'
   }
 
   helpers do
