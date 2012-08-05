@@ -3,6 +3,6 @@ convert $1 -resize '600x600>' $1_resized
 convert $1_resized -colorspace Gray -depth 3 -sample 50% -sample 200% png:- | \
   composite -tile filter/mask.png - -compose Linear_Dodge png:- | \
   convert - -fuzz 8% -transparent white $1.png
-optipng $1.png &>/dev/null
+optipng $1.png -quiet
 cat $1.png
 rm $1 $1_resized $1.png

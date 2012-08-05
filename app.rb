@@ -80,7 +80,7 @@ class Pinify < Sinatra::Base
 
     id = Base62.encode redis.incr('last-id')
 
-    if s3.store "#{id}.png", result, :content_type => 'image/png'
+    if s3.store "#{id}.png", result, :content_type => 'image/png', :ttl => 31556952
       content_type :json
       { :id => id }.to_json
     else
