@@ -107,13 +107,18 @@ class Pinify < Sinatra::Base
       content_type :json
       { :id => id }.to_json
     else
-      return 500
+      500
     end
   end
 
   get %r{^/([0-9a-zA-Z\-_]+)$} do
-    return 404 unless redis.exists("img:#{id}")
-    erb :show
+    if redis.exists("img:#{id}")
+      erb :show
+    elsif imgur_url
+      redirect imgur_url, 301
+    else
+      404
+    end
   end
 
   get %r{^/([0-9a-zA-Z\-_]+)/imgur$} do
@@ -123,7 +128,7 @@ class Pinify < Sinatra::Base
       redis.set("img:#{id}:imgur", hash)
       redirect imgur_url(hash)
     else
-      return 404
+      404
     end
   end
 
