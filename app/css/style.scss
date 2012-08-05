@@ -32,6 +32,10 @@ body {
   background-clip: border-box, border-box, content-box, border-box;
 }
 
+#page {
+  margin-left: 50px;
+}
+
 #printer {
   z-index: 2;
   position: fixed;
