@@ -13,4 +13,11 @@ exception_handler = Proc.new do |env, e|
 end
 
 use Rack::FiberPool, { :rescue_exception => exception_handler }
+use Rack::CommonLogger
+use Rack::Rewrite do
+  r301 /.*/, 'http://pinify.me$&', if: lambda { |env|
+    ENV['RACK_ENV'] == 'production' && !['pinify.me', 'direct.pinify.me'].include?(env['SERVER_NAME'])
+  }
+end
+use Rack::Deflater
 run Pinify
