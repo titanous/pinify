@@ -3,3 +3,4 @@ public
 node_modules
 .sass-cache
 .env
+app/js/ender.min.js
