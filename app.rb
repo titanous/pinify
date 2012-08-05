@@ -3,8 +3,12 @@ Bundler.require
 require './lib/synchrony-popen'
 require './lib/base62'
 require 'tempfile'
+require 'securerandom'
 
 class Pinify < Sinatra::Base
+  ONE_YEAR = 31556952
+  ONE_DAY  = 86400
+
   register Sinatra::CompassSupport
   register Sinatra::AssetPack
 
@@ -58,6 +62,24 @@ class Pinify < Sinatra::Base
     def title(t)
       @title = t
     end
+
+    def id
+      params[:captures].first
+    end
+
+    def s3_url
+      "http://#{settings.s3_bucket}/#{id}.png"
+    end
+
+    def imgur_hash
+      @imgur_hash ||= redis.get("img:#{id}:imgur")
+    end
+
+    def imgur_url(hash = imgur_hash)
+      @imgur_url ||= begin
+        "http://i.imgur.com/#{hash}.png" if imgur_hash
+      end
+    end
   end
 
   get '/' do
@@ -66,7 +88,7 @@ class Pinify < Sinatra::Base
 
   post '/upload' do
     return 413 if request.body.respond_to?(:size) && request.body.size > 4_194_304
-    return 404 unless env['HTTP_X_FILE_NAME']
+    return 400 unless env['HTTP_X_FILE_NAME']
     ext = '.' + env['HTTP_X_FILE_NAME'].split('.').last
 
     begin
@@ -78,9 +100,10 @@ class Pinify < Sinatra::Base
       file.unlink
     end
 
-    id = Base62.encode redis.incr('last-id')
+    id = SecureRandom.urlsafe_base64(5)
 
-    if s3.store "#{id}.png", result, :content_type => 'image/png', :ttl => 31556952
+    if s3.store "#{id}.png", result, :content_type => 'image/png', :ttl => ONE_YEAR
+      redis.setex("img:#{id}", ONE_DAY, '1')
       content_type :json
       { :id => id }.to_json
     else
@@ -88,10 +111,20 @@ class Pinify < Sinatra::Base
     end
   end
 
-  get %r{^/([0-9a-zA-Z]+)$} do
-    @id = params[:captures].first
-    return 404 unless redis.get('last-id').to_i >= Base62.decode(@id).to_i
+  get %r{^/([0-9a-zA-Z\-_]+)$} do
+    return 404 unless redis.exists("img:#{id}")
     erb :show
+  end
+
+  get %r{^/([0-9a-zA-Z\-_]+)/imgur$} do
+    if imgur_hash
+      redirect imgur_url
+    elsif hash = URI.encode_www_form_component(params[:hash])
+      redis.set("img:#{id}:imgur", hash)
+      redirect imgur_url(hash)
+    else
+      return 404
+    end
   end
 
   error 413 do

@@ -5,7 +5,8 @@ $.domReady ->
   $('body').on 'dragover', noop
   $('body').on 'dragleave', noop
   $('body').on 'drop', uploadDrop
-  $('#animate').on 'click', -> animatePage(true)
+  $('#animate').on 'click', (e) -> noop(e); animatePage(true)
+  $('#upload').on 'click', uploadToImgur
   animatePage()
 
 noop = (e) ->
@@ -44,3 +45,18 @@ animatePage = (reanimate) ->
   if pageTop() > 30
     pageTop(pageTop()-10)
     setTimeout(animatePage, 100)
+
+pageUrl = ->
+  l = window.location
+  "#{l.protocol}//#{l.host}#{l.pathname}"
+
+uploadToImgur = (e) ->
+  noop(e) if e
+  $.ajax
+    url: 'http://api.imgur.com/2/upload.json'
+    method: 'post'
+    type: 'json'
+    crossOrigin: true
+    data: { key: 'f6d3ba052d7c914c91294dbe44860dfd', type: 'url', image: imageUrl }
+    success: (data) ->
+      window.location.href = "#{pageUrl()}/imgur?hash=#{data.upload.image.hash}"
