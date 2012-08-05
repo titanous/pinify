@@ -1,8 +1,9 @@
 $.domReady ->
   $('body').on('dragenter', noop).on('dragover', noop).on('dragleave', noop).on('drop', uploadDrop)
+  $(window).on 'resize', debounce(updatePageHeight, 100)
   $('#uploadlink').click showUploadForm
   $('#fileinput').change uploadForm
-  $('#animate').on 'click', (e) -> noop(e); animatePage(true)
+  $('#animate').on 'click', (e) -> noop(e); animatePage(undefined, true) unless animating
   $('#upload').on 'click', uploadToImgur
   animatePage()
 
@@ -36,12 +37,25 @@ pageTop = (v) ->
   else
     parseInt(page.css('top'))
 
-animatePage = (reanimate) ->
-  height = parseInt($('body').css('height'))
+pageHeight = -> $('#page').height()
+
+animating = false
+
+animatePage = (lastPageHeight, reanimate) ->
+  height = $('body').height()
   pageTop(height-350) if reanimate or pageTop() > height
-  if pageTop() > 30
+  if (!lastPageHeight? and !reanimate) or lastPageHeight < pageHeight() or $('#content').height() < pageHeight()+350
+    animating = true
     pageTop(pageTop()-10)
-    setTimeout(animatePage, 100)
+    setTimeout (-> animatePage(pageHeight())), 100
+  else
+    animating = false
+
+updatePageHeight = ->
+  return if animating
+  top = $('body').height() - pageHeight() - 350
+  console.log(top)
+  pageTop top
 
 pageUrl = ->
   l = window.location
@@ -57,3 +71,16 @@ uploadToImgur = (e) ->
     data: { key: 'f6d3ba052d7c914c91294dbe44860dfd', type: 'url', image: imageUrl }
     success: (data) ->
       window.location.href = "#{pageUrl()}/imgur?hash=#{data.upload.image.hash}"
+
+# From https://github.com/clux/wrappers
+debounce = (fn, wait, leading) ->
+  timeout = undefined
+  ->
+    context = this
+    args = arguments
+    fn.apply context, args if leading and not timeout
+    clearTimeout timeout
+    timeout = setTimeout(->
+      timeout = null
+      fn.apply context, args unless leading
+    , wait)
