@@ -1,7 +1,6 @@
 require 'bundler'
 Bundler.require
 require './lib/synchrony-popen'
-require './lib/base62'
 require 'tempfile'
 require 'securerandom'
 
@@ -45,17 +44,17 @@ class Pinify < Sinatra::Base
     def redis
       @redis ||= begin
         redis_uri = URI.parse(ENV['REDISTOGO_URL'] || ENV['REDIS_URL'] || 'redis://localhost:6379')
-        Redis.new(:host => redis_uri.host, :port => redis_uri.port, :password => redis_uri.password)
+        Redis.new(host: redis_uri.host, port: redis_uri.port, password: redis_uri.password)
       end
     end
 
     def s3
       @s3 ||= UberS3.new(
-        :access_key         => ENV['AWS_ACCESS_KEY_ID'],
-        :secret_access_key  => ENV['AWS_SECRET_ACCESS_KEY'],
-        :bucket             => settings.s3_bucket,
-        :persistent         => true,
-        :adapter            => :em_http_fibered
+        access_key: ENV['AWS_ACCESS_KEY_ID'],
+        secret_access_key: ENV['AWS_SECRET_ACCESS_KEY'],
+        bucket: settings.s3_bucket,
+        persistent: true,
+        adapter: :em_http_fibered
       )
     end
 
@@ -92,7 +91,7 @@ class Pinify < Sinatra::Base
     ext = '.' + env['HTTP_X_FILE_NAME'].split('.').last
 
     begin
-      file = Tempfile.new(['img', ext], :encoding => 'binary')
+      file = Tempfile.new(['img', ext], encoding: 'binary')
       file.write request.body.read
       file.close
       result = EM::Synchrony.popen("filter/pinify #{file.path}")
@@ -102,10 +101,10 @@ class Pinify < Sinatra::Base
 
     id = SecureRandom.urlsafe_base64(5)
 
-    if s3.store "#{id}.png", result, :content_type => 'image/png', :ttl => ONE_YEAR
+    if s3.store "#{id}.png", result, content_type: 'image/png', ttl: ONE_YEAR
       redis.setex("img:#{id}", ONE_DAY, '1')
       content_type :json
-      { :id => id }.to_json
+      { id: id }.to_json
     else
       500
     end

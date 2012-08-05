@@ -1,10 +1,7 @@
 $.domReady ->
+  $('body').on('dragenter', noop).on('dragover', noop).on('dragleave', noop).on('drop', uploadDrop)
   $('#uploadlink').click showUploadForm
   $('#fileinput').change uploadForm
-  $('body').on 'dragenter', noop
-  $('body').on 'dragover', noop
-  $('body').on 'dragleave', noop
-  $('body').on 'drop', uploadDrop
   $('#animate').on 'click', (e) -> noop(e); animatePage(true)
   $('#upload').on 'click', uploadToImgur
   animatePage()
