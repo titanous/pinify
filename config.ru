@@ -13,4 +13,4 @@ exception_handler = Proc.new do |env, e|
 end
 
 use Rack::FiberPool, { :rescue_exception => exception_handler }
-run App
+run Pinify

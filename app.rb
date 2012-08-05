@@ -4,7 +4,7 @@ require './lib/synchrony-popen'
 require './lib/base62'
 require 'tempfile'
 
-class App < Sinatra::Base
+class Pinify < Sinatra::Base
   register Sinatra::CompassSupport
   register Sinatra::AssetPack
 
