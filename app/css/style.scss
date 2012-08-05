@@ -10,14 +10,16 @@ body {
   background-repeat: no-repeat;
   @include background(linear-gradient(#454545, #141414));
   background-attachment: fixed;
-  padding-top: 30px;
 }
 
 #content {
-  height: 100%;
+  z-index: 1;
+  position: absolute;
+  top: 30px;
+  bottom: 0;
+  left: 50%;
   width: 700px;
-  margin-left: auto;
-  margin-right: auto;
+  margin-left: -426px;
   padding-left: 60px;
   padding-right: 100px;
   @include background(image-url('hole-left.png'),
@@ -31,6 +33,7 @@ body {
 }
 
 #printer {
+  z-index: 2;
   position: fixed;
   bottom: 0;
   left: 50%;
@@ -46,7 +49,7 @@ body {
   font-weight: normal;
   margin: 0;
   padding: 0;
-  left: 45%;
+  left: 37%;
   bottom: 0;
   position: absolute;
 }
