@@ -5,6 +5,7 @@ $.domReady ->
   $('body').on 'dragover', noop
   $('body').on 'dragleave', noop
   $('body').on 'drop', uploadDrop
+  $('#animate').on 'click', -> animatePage(true)
   animatePage()
 
 noop = (e) ->
@@ -37,9 +38,9 @@ pageTop = (v) ->
   else
     parseInt(page.css('top'))
 
-animatePage = ->
+animatePage = (reanimate) ->
   height = parseInt($('body').css('height'))
-  pageTop(height-350) if pageTop() > height
+  pageTop(height-350) if reanimate or pageTop() > height
   if pageTop() > 30
     pageTop(pageTop()-10)
     setTimeout(animatePage, 100)
