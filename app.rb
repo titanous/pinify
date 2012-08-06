@@ -113,7 +113,7 @@ class Pinify < Sinatra::Base
       file.unlink
     end
 
-    id = SecureRandom.urlsafe_base64(5)
+    id = SecureRandom.urlsafe_base64(3)
 
     if s3_store(id, base, comped)
       redis.setex("img:#{id}", ONE_DAY, '1')
