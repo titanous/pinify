@@ -144,8 +144,4 @@ class Pinify < Sinatra::Base
       404
     end
   end
-
-  error 413 do
-    '<h1>413 ePenis Too Large</h1>'
-  end
 end

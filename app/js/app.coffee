@@ -39,7 +39,7 @@ upload = (file) ->
       printContent(data.content)
     error: (error) ->
       stopLoading()
-      console.log error
+      printContent "<div>Something went wrong. Try again with a different image and make sure it is smaller than 4MB.</div>"
 
 printContent = (html) ->
   $('#page').append(html)
@@ -84,7 +84,12 @@ uploadToImgur = (e) ->
     crossOrigin: true
     data: { key: 'f6d3ba052d7c914c91294dbe44860dfd', type: 'url', image: $('.imgur-upload').last().data('src') }
     success: (data) ->
+      stopLoading()
       window.location.href = "#{pageUrl()}/imgur?hash=#{data.upload.image.hash}"
+    error: ->
+      stopLoading()
+      printContent "<div>Something went wrong, try again later.</div>"
+
 
 startLoading = ->
   printContent "<div class='loading'>Uploading.......</div>"
