@@ -1,8 +1,30 @@
 #!/bin/sh
+
+# Resize to fit within 600x600 pixels
 convert $1 -resize '600x600>' $1_resized
+
+# Get height for tractor
+height=`identify $1_resized | cut -d ' ' -f 3 | cut -d x -f 2 | head -1`
+
+# Convert to grayscale and resample for some blurriness
 convert $1_resized -colorspace Gray -depth 3 -sample 50% -sample 200% png:- | \
-  composite -tile filter/mask.png - -compose Linear_Dodge png:- | \
-  convert - -fuzz 8% -transparent white $1.png
-optipng $1.png -quiet
-cat $1.png
-rm $1 $1_resized $1.png
+# Composite the dot-matrix mask
+  composite -tile filter/mask.png - -compose Linear_Dodge $1.png
+
+# Export the base version for display with a bit more blurriness and transparency
+convert $1.png -fuzz 8% -transparent white $1_base.png
+
+# Composite the tractor and image onto a paper background for the "save-as" version
+composite -tile filter/paper.jpg $1.png -compose Add png:- | \
+   convert - \( -size 55x$height tile:filter/tractor.png \) -swap 0,1 +append $1_comped.png
+
+# Do a quick optimization pass to reduce filesize
+optipng $1_base.png $1_comped.png -quiet
+
+# Output the images to stdout
+cat $1_base.png
+echo "\n----------"
+cat $1_comped.png
+
+# Clean up all the files
+rm $1 $1_resized $1.png $1_base.png $1_comped.png

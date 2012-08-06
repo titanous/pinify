@@ -63,8 +63,14 @@ class Pinify < Sinatra::Base
       params[:captures].first
     end
 
-    def s3_url
-      "http://#{settings.s3_bucket}/#{id}.png"
+    def s3_store(images)
+      images.each do |name,content|
+        s3.store "#{name}.png", content, content_type: 'image/png', ttl: ONE_YEAR
+      end
+    end
+
+    def s3_url(comped = false)
+      "http://#{settings.s3_bucket}/#{id}#{'c' if comped}.png"
     end
 
     def imgur_hash
@@ -91,14 +97,14 @@ class Pinify < Sinatra::Base
       file = Tempfile.new(['img', ext], encoding: 'binary')
       file.write request.body.read
       file.close
-      result = EM::Synchrony.popen("filter/pinify #{file.path}")
+      base, comped = EM::Synchrony.popen("filter/pinify #{file.path}").split("\n----------\n")
     ensure
       file.unlink
     end
 
     id = SecureRandom.urlsafe_base64(5)
 
-    if s3.store "#{id}.png", result, content_type: 'image/png', ttl: ONE_YEAR
+    if s3_store(id => base, (id+'c') => comped)
       redis.setex("img:#{id}", ONE_DAY, '1')
       content_type :json
       { id: id }.to_json

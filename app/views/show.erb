@@ -1,6 +1,6 @@
 <div id="page">
-  <img src="<%= s3_url %>" />
-  <script>var imageUrl = <%= s3_url.inspect %>;</script>
+  <a href="<%= s3_url(true) %>"><img src="<%= s3_url %>" /></a>
+  <script>var imageUrl = <%= s3_url(true).inspect %>;</script>
 
   <div id="imgur">
     <% if imgur_url %>
