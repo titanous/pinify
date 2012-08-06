@@ -7,7 +7,7 @@ $.domReady ->
   $('#file-upload').click showUploadForm
   $('#file-input').change uploadForm
   $('#animate').on 'click', (e) -> noop(e); animatePage(undefined, true) unless animating
-  $('.imgur-upload').on 'click', uploadToImgur
+  addImgurHandler()
   animatePage()
 
 noop = (e) ->
@@ -37,6 +37,7 @@ upload = (file) ->
       stopLoading()
       history.pushState({}, '', data.id)
       printContent(data.content)
+      addImgurHandler()
     error: (error) ->
       stopLoading()
       printContent "<div>Something went wrong. Try again with a different image and make sure it is smaller than 4MB.</div>"
@@ -98,6 +99,8 @@ startLoading = ->
 stopLoading = ->
   clearTimeout(loading)
   loading = false
+
+addImgurHandler = -> $('.imgur-upload').on 'click', uploadToImgur
 
 # From https://github.com/clux/wrappers
 debounce = (fn, wait, leading) ->
