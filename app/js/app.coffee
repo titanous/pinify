@@ -1,10 +1,10 @@
 $.domReady ->
   $('body').on('dragenter', noop).on('dragover', noop).on('dragleave', noop).on('drop', uploadDrop)
   $(window).on 'resize', debounce(updatePageHeight, 100)
-  $('#uploadlink').click showUploadForm
-  $('#fileinput').change uploadForm
+  $('#file-upload').click showUploadForm
+  $('#file-input').change uploadForm
   $('#animate').on 'click', (e) -> noop(e); animatePage(undefined, true) unless animating
-  $('#upload').on 'click', uploadToImgur
+  $('#imgur-upload').on 'click', uploadToImgur
   animatePage()
 
 noop = (e) ->
@@ -12,8 +12,11 @@ noop = (e) ->
   e.preventDefault()
 
 showUploadForm = (e) ->
-  $('#fileinput').css(width: '100px', height: '20px').click()
   noop e
+  input = $('#file-input')
+  # Input form must be visible for click() to work in Firefox
+  input.css(width: '100px', height: '20px') if navigator.userAgent.indexOf('Firefox') != -1
+  input.click()
 
 uploadForm = (e) ->
   upload e.target.files[0]
