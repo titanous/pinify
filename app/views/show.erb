@@ -1,5 +1,5 @@
 <div class="image <%= 'xhr' if request.xhr? %>">
-  <a href="<%= s3_url(true) %>"><img src="<%= s3_url %>" /></a>
+  <a href="<%= imgur_url || s3_url(true) %>"><img src="<%= s3_url %>" /></a>
 </div>
 
 <div class="imgur">
