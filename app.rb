@@ -82,6 +82,10 @@ class Pinify < Sinatra::Base
     end
   end
 
+  get '/favicon.ico' do
+    send_file 'app/images/favicon.ico'
+  end
+
   get '/' do
     erb :index
   end
