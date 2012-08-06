@@ -80,10 +80,19 @@ class Pinify < Sinatra::Base
         "http://i.imgur.com/#{hash}.png" if imgur_hash
       end
     end
+
+    # From http://guides.rubyonrails.org/security.html#file-uploads
+    def sanitize_filename(filename)
+      filename.strip.sub(/\A.*(\\|\/)/, '').gsub(/[^\w\.\-]/, '_')
+    end
   end
 
   get '/favicon.ico' do
     send_file 'app/images/favicon.ico'
+  end
+
+  get '/type/:file' do
+    send_file 'app/type/' + sanitize_filename(params[:file])
   end
 
   get '/' do
