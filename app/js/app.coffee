@@ -7,7 +7,7 @@ $.domReady ->
   $('#file-upload').click showUploadForm
   $('#file-input').change uploadForm
   $('#animate').on 'click', (e) -> noop(e); animatePage(undefined, true) unless animating
-  $('#imgur-upload').on 'click', uploadToImgur
+  $('.imgur-upload').on 'click', uploadToImgur
   animatePage()
 
 noop = (e) ->
@@ -36,7 +36,6 @@ upload = (file) ->
     success: (data) ->
       stopLoading()
       history.pushState({}, '', data.id)
-      $('#page').addClass('uploaded')
       printContent(data.content)
     error: (error) ->
       stopLoading()
@@ -83,7 +82,7 @@ uploadToImgur = (e) ->
     method: 'post'
     type: 'json'
     crossOrigin: true
-    data: { key: 'f6d3ba052d7c914c91294dbe44860dfd', type: 'url', image: $('#imgur-upload').data('src') }
+    data: { key: 'f6d3ba052d7c914c91294dbe44860dfd', type: 'url', image: $('.imgur-upload').last().data('src') }
     success: (data) ->
       window.location.href = "#{pageUrl()}/imgur?hash=#{data.upload.image.hash}"
 

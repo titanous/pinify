@@ -1,10 +1,25 @@
-<div id="image">
+<div class="image <%= 'xhr' if request.xhr? %>">
   <a href="<%= s3_url(true) %>"><img src="<%= s3_url %>" /></a>
 </div>
-<div id="imgur">
-  <% if imgur_url %>
-    <a href="<%= imgur_url %>">Upload to imgur</a>
-  <% else %>
-    <a id="imgur-upload" data-src="<%= s3_url(true) %>" href="#">Upload to imgur</a>
-  <% end %>
+
+<div class="imgur">
+  <div class="sidebar">
+    #<br/>#<br/>#<br/>#<br/>#<br/>
+  </div>
+
+  <div class="message">
+    ########################################<br/><br/>
+    &nbsp;
+    <% if imgur_url %>
+      <a href="<%= imgur_url %>">View on imgur</a>
+    <% else %>
+      <a class="imgur-upload" data-src="<%= s3_url(true) %>" href="#">Save to imgur</a>
+    <% end %>
+    or drag another image here<br/><br/>
+    ########################################<br/>
+  </div>
+
+  <div class="sidebar">
+    #<br/>#<br/>#<br/>#<br/>#<br/>
+  </div>
 </div>
