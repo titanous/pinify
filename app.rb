@@ -5,7 +5,6 @@ require 'tempfile'
 require 'securerandom'
 
 class Pinify < Sinatra::Base
-  ONE_YEAR = 31556952
   ONE_DAY  = 86400
 
   register Sinatra::CompassSupport
@@ -63,14 +62,13 @@ class Pinify < Sinatra::Base
       params[:captures].first
     end
 
-    def s3_store(images)
-      images.each do |name,content|
-        s3.store "#{name}.png", content, content_type: 'image/png', ttl: ONE_YEAR
-      end
+    def s3_store(id, base, comped)
+      s3.store "#{id}.png", base, content_type: 'image/png', ttl: ONE_DAY
+      s3.store "#{id}c.jpg", comped, content_type: 'image/jpeg', ttl: ONE_DAY
     end
 
     def s3_url(comped = false)
-      "http://#{settings.s3_bucket}/#{id}#{'c' if comped}.png"
+      "http://#{settings.s3_bucket}/#{id}#{comped ? 'c.jpg' : '.png'}"
     end
 
     def imgur_hash
@@ -104,7 +102,7 @@ class Pinify < Sinatra::Base
 
     id = SecureRandom.urlsafe_base64(5)
 
-    if s3_store(id => base, (id+'c') => comped)
+    if s3_store(id, base, comped)
       redis.setex("img:#{id}", ONE_DAY, '1')
       content_type :json
       { id: id }.to_json

@@ -16,15 +16,15 @@ convert $1.png -fuzz 8% -transparent white $1_base.png
 
 # Composite the tractor and image onto a paper background for the "save-as" version
 composite -tile filter/paper.jpg $1.png -compose Add png:- | \
-   convert - \( -size 55x$height tile:filter/tractor.png \) -swap 0,1 +append $1_comped.png
+   convert - \( -size 55x$height tile:filter/tractor.png \) -swap 0,1 +append $1_comped.jpg
 
 # Do a quick optimization pass to reduce filesize
-optipng $1_base.png $1_comped.png -quiet
+optipng $1_base.png -quiet
 
 # Output the images to stdout
 cat $1_base.png
 echo "\n----------"
-cat $1_comped.png
+cat $1_comped.jpg
 
 # Clean up all the files
-rm $1 $1_resized $1.png $1_base.png $1_comped.png
+rm $1 $1_resized $1.png $1_base.png $1_comped.jpg
