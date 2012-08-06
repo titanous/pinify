@@ -23,6 +23,10 @@ body {
   overflow: hidden;
 }
 
+a {
+  color: grey;
+}
+
 #content {
   z-index: 1;
   position: absolute;
@@ -44,8 +48,11 @@ body {
 }
 
 #page {
+  margin-right: 50px;
   margin-left: 50px;
+  padding-top: 10px;
   font-family: 'Dot Matrix';
+  font-size: 24px;
 }
 
 #printer {
@@ -85,4 +92,12 @@ body {
     width: 100%;
     height: 100%;
   }
+}
+
+.loading {
+  padding-top: 150px;
+}
+
+.uploaded #image {
+  padding-top: 300px;
 }

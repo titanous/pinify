@@ -1,12 +1,10 @@
-<div id="page">
+<div id="image">
   <a href="<%= s3_url(true) %>"><img src="<%= s3_url %>" /></a>
-  <script>var imageUrl = <%= s3_url(true).inspect %>;</script>
-
-  <div id="imgur">
-    <% if imgur_url %>
-      <a href="<%= imgur_url %>">Upload to imgur</a>
-    <% else %>
-      <a id="imgur-upload" href="#">Upload to imgur</a>
-    <% end %>
-  </div>
+</div>
+<div id="imgur">
+  <% if imgur_url %>
+    <a href="<%= imgur_url %>">Upload to imgur</a>
+  <% else %>
+    <a id="imgur-upload" data-src="<%= s3_url(true) %>" href="#">Upload to imgur</a>
+  <% end %>
 </div>

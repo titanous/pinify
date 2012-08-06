@@ -59,7 +59,7 @@ class Pinify < Sinatra::Base
     end
 
     def id
-      params[:captures].first
+      @id || params[:captures].first
     end
 
     def s3_store(id, base, comped)
@@ -113,12 +113,12 @@ class Pinify < Sinatra::Base
       file.unlink
     end
 
-    id = SecureRandom.urlsafe_base64(3)
+    @id = SecureRandom.urlsafe_base64(3)
 
     if s3_store(id, base, comped)
       redis.setex("img:#{id}", ONE_DAY, '1')
       content_type :json
-      { id: id }.to_json
+      { id: id, content: erb(:show, layout: false) }.to_json
     else
       500
     end

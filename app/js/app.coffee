@@ -1,3 +1,6 @@
+animating = false
+loading = false
+
 $.domReady ->
   $('body').on('dragenter', noop).on('dragover', noop).on('dragleave', noop).on('drop', uploadDrop)
   $(window).on 'resize', debounce(updatePageHeight, 100)
@@ -26,12 +29,22 @@ uploadDrop = (e) ->
   upload e.dataTransfer.files[0]
 
 upload = (file) ->
+  startLoading()
   $.upload
     url: '/upload'
     data: file
-# FIXME:
-    success: (data) -> window.location = "/#{data.id}"
-    error: (error) -> console.log error
+    success: (data) ->
+      stopLoading()
+      history.pushState({}, '', data.id)
+      $('#page').addClass('uploaded')
+      printContent(data.content)
+    error: (error) ->
+      stopLoading()
+      console.log error
+
+printContent = (html) ->
+  $('#page').append(html)
+  animatePage() unless animating
 
 pageTop = (v) ->
   page = $('#content')
@@ -41,8 +54,6 @@ pageTop = (v) ->
     parseInt(page.css('top'))
 
 pageHeight = -> $('#page').height()
-
-animating = false
 
 animatePage = (lastPageHeight, reanimate) ->
   height = $('body').height()
@@ -66,14 +77,23 @@ pageUrl = ->
 
 uploadToImgur = (e) ->
   noop(e) if e
+  startLoading()
   $.ajax
     url: 'http://api.imgur.com/2/upload.json'
     method: 'post'
     type: 'json'
     crossOrigin: true
-    data: { key: 'f6d3ba052d7c914c91294dbe44860dfd', type: 'url', image: imageUrl }
+    data: { key: 'f6d3ba052d7c914c91294dbe44860dfd', type: 'url', image: $('#imgur-upload').data('src') }
     success: (data) ->
       window.location.href = "#{pageUrl()}/imgur?hash=#{data.upload.image.hash}"
+
+startLoading = ->
+  printContent "<div class='loading'>Uploading.......</div>"
+  loading = setTimeout startLoading, 1500
+
+stopLoading = ->
+  clearTimeout(loading)
+  loading = false
 
 # From https://github.com/clux/wrappers
 debounce = (fn, wait, leading) ->
