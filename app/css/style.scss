@@ -20,6 +20,7 @@ body {
   background-repeat: no-repeat;
   @include background(linear-gradient(#454545, #141414));
   background-attachment: fixed;
+  overflow: hidden;
 }
 
 #content {
