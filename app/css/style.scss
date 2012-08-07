@@ -2,10 +2,11 @@
 
 @font-face {
   font-family: 'Dot Matrix';
-  src: url('/type/dot_matrix.eot') format('eot'),
+  src: url('/type/dot_matrix.eot');
+  src: url('/type/dot_matrix.eot?#iefix') format('embedded-opentype'),
        url('/type/dot_matrix.woff') format('woff'),
        url('/type/dot_matrix.ttf') format('truetype'),
-       url('/type/dot_matrix.svg#DotMatrix') format('svg');
+       url('/type/dot_matrix.svg#/type/dotMatrixRegular') format('svg');
   font-weight: normal;
   font-style: normal;
 }
