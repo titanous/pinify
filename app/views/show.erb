@@ -1,4 +1,4 @@
-<div class="image <%= 'xhr' if request.xhr? %>">
+<div id="<%= id %>" class="image <%= 'xhr' if request.xhr? %>">
   <a href="<%= imgur_url || s3_url(true) %>"><img src="<%= s3_url %>" /></a>
 </div>
 

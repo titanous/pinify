@@ -1,14 +1,14 @@
-animating = false
+scrolling = false
 loading = false
 
 $.domReady ->
   $('body').on('dragenter', noop).on('dragover', noop).on('dragleave', noop).on('drop', uploadDrop)
-  $(window).on 'resize', debounce(updatePageHeight, 100)
+  $(window).on('resize', debounce(updatePageHeight, 100)).on('popstate', scrollback)
   $('#file-upload').click showUploadForm
   $('#file-input').change uploadForm
-  $('#animate').on 'click', (e) -> noop(e); animatePage(undefined, true) unless animating
+  $('#animate').on 'click', (e) -> noop(e); scrollToEnd(undefined, true) unless scrolling
   addImgurHandler()
-  animatePage()
+  scrollToEnd()
 
 noop = (e) ->
   e.stopPropagation()
@@ -35,7 +35,7 @@ upload = (file) ->
     data: file
     success: (data) ->
       stopLoading()
-      history.pushState({}, '', data.id)
+      history.pushState({ id: data.id }, '', data.id)
       printContent(data.content)
       addImgurHandler()
     error: (error) ->
@@ -44,7 +44,7 @@ upload = (file) ->
 
 printContent = (html) ->
   $('#page').append(html)
-  animatePage() unless animating
+  scrollToEnd() unless scrolling
 
 pageTop = (v) ->
   page = $('#content')
@@ -55,21 +55,43 @@ pageTop = (v) ->
 
 pageHeight = -> $('#page').height()
 
-animatePage = (lastPageHeight, reanimate) ->
+scrollToEnd = (lastPageHeight, reanimate) ->
   height = $('body').height()
   pageTop(height-350) if reanimate or pageTop() > height
   if (!lastPageHeight? and !reanimate) or lastPageHeight < pageHeight() or $('#content').height() < pageHeight()+350
-    animating = true
+    scrolling = true
     pageTop(pageTop()-10)
-    setTimeout (-> animatePage(pageHeight())), 100
+    setTimeout (-> scrollToEnd(pageHeight())), 75
   else
-    animating = false
+    scrolling = false
+
+scrollTo = (target) ->
+  if Math.floor(pageTop()/10) != Math.floor(target/10)
+    scrolling = true
+    if pageTop() > target
+      pageTop(pageTop()-10)
+    else
+      pageTop(pageTop()+10)
+    setTimeout (-> scrollTo(target)), 40
+  else
+    scrolling = false
 
 updatePageHeight = ->
-  return if animating
+  return if scrolling
   top = $('body').height() - pageHeight() - 350
   console.log(top)
   pageTop top
+
+scrollback = (e) ->
+  return unless $('.xhr').length > 0 # return unless an image has been uploaded
+  console.log(e)
+  if id = e.originalEvent.state?.id
+    el = $('#'+id)
+    offset = el.offset().top - 50
+    offset += 200 if el.hasClass('xhr')
+    scrollTo pageTop() - offset
+  else
+    scrollTo 100
 
 pageUrl = ->
   l = window.location
@@ -90,7 +112,6 @@ uploadToImgur = (e) ->
     error: ->
       stopLoading()
       printContent "<div>Something went wrong, try again later.</div>"
-
 
 startLoading = ->
   printContent "<div class='loading'>Uploading.......</div>"

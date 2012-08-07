@@ -9,7 +9,7 @@ convert $1_resized -colorspace Gray -depth 3 -sample 50% -sample 200% png:- | \
 # Composite the dot-matrix mask
   composite -tile filter/mask.png - -compose Linear_Dodge $1.png
 
-# Export the base version for display with a bit more blurriness and transparency
+# Export the base version for display with transparency
 convert $1.png -fuzz 8% -transparent white $1_base.png
 
 # Add the "pinify your own..." banner to the composited version
