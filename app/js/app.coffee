@@ -1,6 +1,19 @@
 scrolling = false
 loading = false
 
+# Track all the timings
+_gaq.push ['_setSiteSpeedSampleRate', 100]
+
+class Timing
+  constructor: (@category, @variable) ->
+    @start = new Date().getTime()
+
+  send: ->
+    @end = new Date().getTime()
+    @duration = @end - @start
+    _gaq.push ['_trackTiming', @category, @variable, @duration]
+
+
 $.domReady ->
   $('body').on('dragenter', noop).on('dragover', noop).on('dragleave', noop).on('drop', uploadDrop)
   $(window).on('resize', debounce(updatePageHeight, 100)).on('popstate', scrollback)
@@ -9,6 +22,8 @@ $.domReady ->
   $('#animate').on 'click', (e) -> noop(e); scrollToEnd(undefined, true) unless scrolling
   addImgurHandler()
   scrollToEnd()
+  mixpanel.track_links('.image a', 'Image click', (e) -> id: $(e).attr('id'))
+  mixpanel.track_links('.imgur-link', 'Imgur click', (e) -> id: $(e).data('id'))
 
 noop = (e) ->
   e.stopPropagation()
@@ -30,12 +45,16 @@ uploadDrop = (e) ->
 
 upload = (file) ->
   startLoading()
+  timing = new Timing('Response Time', 'Pinify')
   $.upload
     url: '/upload'
     data: file
     success: (data) ->
       stopLoading()
+      timing.send()
+      trackEvent('Pinify', data.id, timing.duration)
       history.pushState({ id: data.id }, '', data.id)
+      mixpanel.track_pageview('/'+data.id)
       printContent(data.content)
       addImgurHandler()
     error: (error) ->
@@ -99,19 +118,28 @@ pageUrl = ->
 
 uploadToImgur = (e) ->
   noop(e) if e
+  console.log(e)
   startLoading()
+  timing = new Timing('Response Time', 'Imgur upload')
   $.ajax
     url: 'http://api.imgur.com/2/upload.json'
     method: 'post'
     type: 'json'
     crossOrigin: true
-    data: { key: 'f6d3ba052d7c914c91294dbe44860dfd', type: 'url', image: $('.imgur-upload').last().data('src') }
+    data: { key: 'f6d3ba052d7c914c91294dbe44860dfd', type: 'url', image: $(e.target).data('src') }
     success: (data) ->
       stopLoading()
-      window.location.href = "#{pageUrl()}/imgur?hash=#{data.upload.image.hash}"
+      timing.send()
+      redirect = -> window.location.href = "#{pageUrl()}/imgur?hash=#{data.upload.image.hash}"
+      trackEvent('Imgur upload', $(e.target).data('id'), timing.duration, redirect)
+      setTimeout(redirect, 300)
     error: ->
       stopLoading()
       printContent "<div>Something went wrong, try again later.</div>"
+
+trackEvent = (action, id, timing, callback) ->
+  _gaq.push ['_trackEvent', 'Actions', action, id, timing]
+  mixpanel.track(action, { id: id, timing: timing }, callback)
 
 startLoading = ->
   printContent "<div class='loading'>Uploading.......</div>"
