@@ -22,10 +22,11 @@ body {
   @include background(linear-gradient(#454545, #141414));
   background-attachment: fixed;
   overflow: hidden;
+  color: #434343;
 }
 
 a {
-  color: grey;
+  color: #6a6a6a;
 }
 
 #content {
