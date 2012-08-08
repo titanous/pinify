@@ -1,11 +1,14 @@
 require 'bundler'
 Bundler.require
 require './lib/synchrony-popen'
+require './lib/mixpanel'
 require 'tempfile'
 require 'securerandom'
 
 class Pinify < Sinatra::Base
   ONE_DAY  = 86400
+
+  use Mixpanel::Middleware
 
   register Sinatra::CompassSupport
   register Sinatra::AssetPack
@@ -128,6 +131,7 @@ class Pinify < Sinatra::Base
     if redis.exists("img:#{id}")
       erb :show
     elsif imgur_url
+      env['mixpanel'].track('Imgur redirect', id: id)
       redirect imgur_url, 301
     else
       404
