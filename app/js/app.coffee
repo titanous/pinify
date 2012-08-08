@@ -98,12 +98,10 @@ scrollTo = (target) ->
 updatePageHeight = ->
   return if scrolling
   top = $('body').height() - pageHeight() - 350
-  console.log(top)
   pageTop top
 
 scrollback = (e) ->
   return unless $('.xhr').length > 0 # return unless an image has been uploaded
-  console.log(e)
   if id = e.originalEvent.state?.id
     el = $('#'+id)
     offset = el.offset().top - 50
@@ -118,7 +116,6 @@ pageUrl = ->
 
 uploadToImgur = (e) ->
   noop(e) if e
-  console.log(e)
   startLoading()
   timing = new Timing('Response Time', 'Imgur upload')
   $.ajax
