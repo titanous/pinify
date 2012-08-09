@@ -42,7 +42,7 @@ uploadForm = (e) ->
 
 uploadDrop = (e) ->
   noop e
-  upload e.dataTransfer.files[0]
+  upload e.dataTransfer.files[0] if e.dataTransfer.files.length > 0
 
 upload = (file) ->
   startLoading()
