@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require 'bundler'
 Bundler.require
 require './lib/synchrony-popen'
@@ -88,6 +90,14 @@ class Pinify < Sinatra::Base
     def sanitize_filename(filename)
       filename.strip.sub(/\A.*(\\|\/)/, '').gsub(/[^\w\.\-]/, '_')
     end
+
+    def tweet_intent(t)
+      "https://twitter.com/intent/tweet?text=#{URI.encode_www_form_component(t)}&via=pinify"
+    end
+
+    def tweet_url
+      tweet_intent(TWEET_MESSAGES.sample % "http://pinify.me/#{id}")
+    end
   end
 
   get '/favicon.ico' do
@@ -148,4 +158,15 @@ class Pinify < Sinatra::Base
       404
     end
   end
+
+  TWEET_MESSAGES = [
+    "Check out this #dotmatrix photo: %s",
+    "This photo is now 9,002%% cooler: %s",
+    "Everything is better #pinified: %s",
+    "My retro filter is better than your retro filter: %s",
+    "Before color there was #dotmatrix: %s",
+    "Laser? That's so last year: %s",
+    "Inkjet? That's so last year: %s",
+    "%s — #dotmatrix is awesome"
+  ]
 end
