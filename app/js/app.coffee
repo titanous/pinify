@@ -78,7 +78,7 @@ pageHeight = -> $('#page').height()
 scrollToEnd = (lastPageHeight, reanimate) ->
   height = $('body').height()
   pageTop(height-350) if reanimate or pageTop() > height
-  if (!lastPageHeight? and !reanimate) or lastPageHeight < pageHeight() or $('#content').height() < pageHeight()+350
+  if (!lastPageHeight? and !reanimate) or lastPageHeight < pageHeight() or $('#content').height() < pageHeight()+280
     scrolling = true
     pageTop(pageTop()-10)
     setTimeout (-> scrollToEnd(pageHeight())), 75
