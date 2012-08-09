@@ -4,6 +4,7 @@ require 'bundler'
 Bundler.require
 require './lib/synchrony-popen'
 require './lib/mixpanel'
+require './lib/header_middleware'
 require 'tempfile'
 require 'securerandom'
 
@@ -11,6 +12,7 @@ class Pinify < Sinatra::Base
   ONE_DAY  = 86400
   BANNER_HEIGHT = 91
 
+  use HeaderMiddleware
   use Mixpanel::Middleware
 
   register Sinatra::CompassSupport
