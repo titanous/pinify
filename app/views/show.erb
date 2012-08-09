@@ -1,6 +1,6 @@
 <div class="image-wrapper" id="<%= id %>">
   <div class="image <%= 'xhr' if request.xhr? %>">
-    <a href="<%= imgur_url || s3_url(true) %>"><img src="<%= s3_url %>" width="600" height="<%= @height %>"></a>
+    <a href="<%= imgur_url || s3_url(true) %>"><img src="<%= s3_url %>" height="<%= @height %>"></a>
   </div>
 
   <div class="outer-message">
