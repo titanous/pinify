@@ -41,6 +41,9 @@ class Pinify < Sinatra::Base
     css_compression :simple
   }
 
+  # Make Chrome happy
+  Rack::Mime::MIME_TYPES['.woff'] = 'application/x-font-woff'
+
   helpers do
     def redis
       @redis ||= begin
