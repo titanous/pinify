@@ -17,20 +17,8 @@ class Pinify < Sinatra::Base
   ONE_DAY  = 86400
   BANNER_HEIGHT = 91
 
-  register Sinatra::Synchrony
   register Sinatra::CompassSupport
   register Sinatra::AssetPack
-
-  use HeaderMiddleware
-  use Mixpanel::Middleware
-  use Rack::CommonLogger
-  use Rack::Rewrite do
-    r301 /.*/, 'http://pinify.me$&', if: lambda { |env|
-      ENV['RACK_ENV'] == 'production' && !['pinify.me', 'direct.pinify.me'].include?(env['SERVER_NAME'])
-    }
-  end
-  use Rack::Deflater
-
 
   configure :production do
     set :s3_bucket, 'i.pinify.me'
