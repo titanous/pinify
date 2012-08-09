@@ -9,6 +9,7 @@ require 'securerandom'
 
 class Pinify < Sinatra::Base
   ONE_DAY  = 86400
+  BANNER_HEIGHT = 91
 
   use Mixpanel::Middleware
 
@@ -124,7 +125,7 @@ class Pinify < Sinatra::Base
       file = Tempfile.new(['img', ext], encoding: 'binary')
       file.write request.body.read
       file.close
-      base, comped = EM::Synchrony.popen("filter/pinify #{file.path}").split("\n----------\n")
+      @height, base, comped = EM::Synchrony.popen("filter/pinify #{file.path}").split("\n----------\n")
     ensure
       file.unlink
     end
@@ -132,7 +133,7 @@ class Pinify < Sinatra::Base
     @id = SecureRandom.urlsafe_base64(3)
 
     if s3_store(id, base, comped)
-      redis.setex("img:#{id}", ONE_DAY, '1')
+      redis.setex("img:#{id}", ONE_DAY, @height.to_i - BANNER_HEIGHT)
       content_type :json
       { id: id, content: erb(:show, layout: false) }.to_json
     else
@@ -141,7 +142,7 @@ class Pinify < Sinatra::Base
   end
 
   get %r{^/([0-9a-zA-Z\-_]+)$} do
-    if redis.exists("img:#{id}")
+    if @height = redis.get("img:#{id}")
       erb :show
     elsif imgur_url
       env['mixpanel'].track('Imgur redirect', id: id)

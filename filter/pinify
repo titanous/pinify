@@ -26,6 +26,8 @@ composite -tile filter/paper.jpg $1_comped.png -compose Add png:- | \
 optipng $1_base.png -quiet
 
 # Output the images to stdout
+echo $height
+echo "\n----------"
 cat $1_base.png
 echo "\n----------"
 cat $1_comped.jpg
