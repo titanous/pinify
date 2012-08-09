@@ -1,4 +1,4 @@
-worker_processes 5
+worker_processes 2
 listen ENV['PORT']
 
 Rainbows! do
