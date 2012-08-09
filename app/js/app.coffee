@@ -55,7 +55,7 @@ upload = (file) ->
       timing.send()
       trackEvent('Pinify', data.id, timing.duration)
       history.pushState({ id: data.id }, '', data.id)
-      mixpanel.track_pageview('/'+data.id)
+      mixpanel.track_pageview('http://pinify.me/'+data.id)
       printContent(data.content)
       addImgurHandler()
     error: (error) ->
