@@ -8,6 +8,11 @@ require './lib/header_middleware'
 require 'tempfile'
 require 'securerandom'
 
+$redis = EM::Synchrony::ConnectionPool.new(size: 10) do
+  redis_uri = URI.parse(ENV['REDISTOGO_URL'] || ENV['REDIS_URL'] || 'redis://localhost:6379')
+  Redis.new(host: redis_uri.host, port: redis_uri.port, password: redis_uri.password)
+end
+
 class Pinify < Sinatra::Base
   ONE_DAY  = 86400
   BANNER_HEIGHT = 91
@@ -57,13 +62,6 @@ class Pinify < Sinatra::Base
   Rack::Mime::MIME_TYPES['.woff'] = 'application/x-font-woff'
 
   helpers do
-    def redis
-      @redis ||= begin
-        redis_uri = URI.parse(ENV['REDISTOGO_URL'] || ENV['REDIS_URL'] || 'redis://localhost:6379')
-        Redis.new(host: redis_uri.host, port: redis_uri.port, password: redis_uri.password)
-      end
-    end
-
     def s3
       @s3 ||= UberS3.new(
         access_key: ENV['AWS_ACCESS_KEY_ID'],
@@ -92,7 +90,7 @@ class Pinify < Sinatra::Base
     end
 
     def imgur_hash
-      @imgur_hash ||= redis.get("img:#{id}:imgur")
+      @imgur_hash ||= $redis.get("img:#{id}:imgur")
     end
 
     def imgur_url(hash = imgur_hash)
@@ -144,7 +142,7 @@ class Pinify < Sinatra::Base
     @id = SecureRandom.urlsafe_base64(3)
 
     if s3_store(id, base, comped)
-      redis.setex("img:#{id}", ONE_DAY, @height.to_i - BANNER_HEIGHT)
+      $redis.setex("img:#{id}", ONE_DAY, @height.to_i - BANNER_HEIGHT)
       content_type :json
       { id: id, content: erb(:show, layout: false) }.to_json
     else
@@ -153,7 +151,7 @@ class Pinify < Sinatra::Base
   end
 
   get %r{^/([0-9a-zA-Z\-_]+)$} do
-    if @height = redis.get("img:#{id}")
+    if @height = $redis.get("img:#{id}")
       erb :show
     elsif imgur_url
       env['mixpanel'].track('Imgur redirect', id: id)
@@ -167,7 +165,7 @@ class Pinify < Sinatra::Base
     if imgur_hash
       redirect imgur_url
     elsif hash = URI.encode_www_form_component(params[:hash])
-      redis.set("img:#{id}:imgur", hash)
+      $redis.set("img:#{id}:imgur", hash)
       redirect imgur_url(hash)
     else
       404
