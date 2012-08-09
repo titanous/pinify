@@ -22,8 +22,9 @@ $.domReady ->
   $('#animate').on 'click', (e) -> noop(e); scrollToEnd(undefined, true) unless scrolling
   addImgurHandler()
   scrollToEnd()
-  mixpanel.track_links('.image a', 'Image click', (e) -> id: $(e).attr('id'))
-  mixpanel.track_links('.imgur-link', 'Imgur click', (e) -> id: $(e).data('id'))
+  mixpanel.track_links('.image a', 'Image click', (e) -> id: imageId(e))
+  mixpanel.track_links('.imgur-link', 'Imgur click', (e) -> id: imageId(e))
+  mixpanel.track_links('.tweet a', 'Tweet click', (e) -> id: imageId(e))
 
 noop = (e) ->
   e.stopPropagation()
@@ -128,7 +129,7 @@ uploadToImgur = (e) ->
       stopLoading()
       timing.send()
       redirect = -> window.location.href = "#{pageUrl()}/imgur?hash=#{data.upload.image.hash}"
-      trackEvent('Imgur upload', $(e.target).data('id'), timing.duration, redirect)
+      trackEvent('Imgur upload', imageId(e.target), timing.duration, redirect)
       setTimeout(redirect, 300)
     error: ->
       stopLoading()
@@ -147,6 +148,10 @@ stopLoading = ->
   loading = false
 
 addImgurHandler = -> $('.imgur-upload').on 'click', uploadToImgur
+
+imageId = (el) ->
+  $(el).closest('.image-wrapper').attr('id')
+
 
 # From https://github.com/clux/wrappers
 debounce = (fn, wait, leading) ->

@@ -1,23 +1,25 @@
-<div class="image <%= 'xhr' if request.xhr? %>">
-  <a href="<%= imgur_url || s3_url(true) %>" id="<%= id %>"><img src="<%= s3_url %>"></a>
-</div>
-
-<div class="outer-message">
-  <div class="top message-border"></div>
-  <div class="left message-border"></div>
-  <div class="message">
-    <div class="tweet">
-      <a href="<%= tweet_url %>">Tweet</a>
-    </div>
-    <div class="imgur">
-      <% if imgur_url %>
-        <a class="imgur-link" href="<%= imgur_url %>" data-id="<%= id %>">View on imgur</a>
-      <% else %>
-        <a class="imgur-upload" data-id="<%= id %>" data-src="<%= s3_url(true) %>" href="#">Save to imgur</a>
-      <% end %>
-      or drag in another image.
-    </div>
+<div class="image-wrapper" id="<%= id %>">
+  <div class="image <%= 'xhr' if request.xhr? %>">
+    <a href="<%= imgur_url || s3_url(true) %>"><img src="<%= s3_url %>"></a>
   </div>
-  <div class="right message-border"></div>
-  <div class="bottom message-border"></div>
+
+  <div class="outer-message">
+    <div class="top message-border"></div>
+    <div class="left message-border"></div>
+    <div class="message">
+      <div class="tweet">
+        <a href="<%= tweet_url %>">Tweet</a>
+      </div>
+      <div class="imgur">
+        <% if imgur_url %>
+          <a class="imgur-link" href="<%= imgur_url %>">View on imgur</a>
+        <% else %>
+          <a class="imgur-upload" data-src="<%= s3_url(true) %>" href="#">Save to imgur</a>
+        <% end %>
+        or drag in another image.
+      </div>
+    </div>
+    <div class="right message-border"></div>
+    <div class="bottom message-border"></div>
+  </div>
 </div>
