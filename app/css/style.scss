@@ -27,6 +27,8 @@ body {
 
 a {
   color: #6a6a6a;
+  text-decoration: none;
+  border-bottom: 1px dotted;
 }
 
 #content {
@@ -98,6 +100,7 @@ a {
       width: 64px;
       display: block;
       text-indent: 9999px;
+      border-bottom: none;
     }
   }
   .imgur {
@@ -127,7 +130,7 @@ a {
   bottom: 0;
   position: absolute;
   a {
-    text-decoration: none;
+    border-bottom: none;
     color: inherit;
   }
 }
@@ -149,8 +152,13 @@ a {
   padding-top: 150px;
 }
 
-.image.xhr {
-  padding-top: 300px;
+.image {
+  a {
+    border-bottom: none;
+  }
+  &.xhr {
+    padding-top: 300px;
+  }
 }
 
 .image-wrapper {
