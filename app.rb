@@ -80,7 +80,7 @@ class Pinify < Sinatra::Base
 
     def imgur_url(hash = imgur_hash)
       @imgur_url ||= begin
-        "http://i.imgur.com/#{hash}.png" if imgur_hash
+        "http://imgur.com/#{hash}" if imgur_hash
       end
     end
 
